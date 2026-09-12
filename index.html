@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<!-- Space Pilot — by ggbaster · BrawkliEnterianment (c) 2026 -->
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="author" content="ggbaster / BrawkliEnterianment">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Космический Пилот</title>
+
+<!-- Иконки и PWA-манифест — чтобы при добавлении на главный экран (iOS/Android/десктоп)
+     показывались правильная картинка и название. Файлы должны лежать рядом с index.html
+     в том же репозитории/папке при хостинге (GitHub Pages и т.п.). -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#050814">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Косм. Пилот">
+<meta name="application-name" content="Космический Пилот">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#4fd1ff;
+    --accent2:#ff6b6b;
+    --gold:#ffd166;
+    --bg1:#050814;
+    --bg2:#0d1230;
+    --panel:rgba(10,16,36,0.90);
+    --panel2:rgba(16,22,46,0.95);
+    --text:#eaf6ff;
+    --muted:#9ab0c9;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;width:100%;height:100%;overflow:hidden;
+    background:var(--bg1);
+    font-family:'Rubik',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-user-select:none;user-select:none;touch-action:none;
+  }
+  #game-container{
+    position:relative;width:100vw;height:100vh;
+    padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+    padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
+  }
+  canvas{display:block;width:100%;height:100%;touch-action:none;}
+
+  #hud{
+    position:absolute;top:calc(14px + env(safe-area-inset-top));left:0;right:0;
+    display:flex;flex-direction:column;align-items:center;
+    pointer-events:none;z-index:5;
+  }
+  #hud-score{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(30px,6.5vw,48px);font-weight:900;color:var(--text);
+    text-shadow:0 0 16px rgba(79,209,255,0.7),0 2px 4px rgba(0,0,0,0.6);
+    letter-spacing:2px;
+  }
+  #hud-best{
+    font-family:'Orbitron',sans-serif;
+    font-size:12.5px;font-weight:700;color:var(--gold);
+    text-shadow:0 0 8px rgba(255,209,102,0.5);
+    letter-spacing:0.5px;margin-top:1px;opacity:0.92;
+  }
+  #hud-multiplier{
+    font-family:'Orbitron',sans-serif;font-size:13px;font-weight:800;color:#ff9d6b;
+    text-shadow:0 0 8px rgba(255,157,107,0.6);margin-top:2px;
+  }
+  #hud-progress-bg{
+    width:min(220px,60vw);height:8px;border-radius:5px;background:rgba(255,255,255,0.15);
+    overflow:hidden;margin-top:6px;border:1px solid rgba(79,209,255,0.3);
+  }
+  #hud-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#8effa0);transition:width .2s linear;}
+  #hud-stage-diff{margin-top:5px;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;border:1px solid currentColor;}
+  #hud-sub{display:flex;gap:10px;margin-top:4px;}
+  #hud-shield, #hud-gems{
+    font-size:13px;font-weight:700;
+    text-shadow:0 0 8px rgba(0,0,0,0.6);
+  }
+  #hud-shield{color:var(--gold);}
+  #hud-gems{color:#7de0ff;}
+  #best-badge{
+    position:absolute;top:calc(16px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));
+    background:var(--panel);border:1px solid rgba(79,209,255,0.35);
+    border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);
+    display:flex;gap:6px;align-items:center;pointer-events:none;z-index:5;
+    box-shadow:0 0 18px rgba(79,209,255,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  #best-badge b{color:var(--accent);font-weight:700;font-family:'Orbitron',sans-serif;}
+
+  #hit-flash{
+    position:absolute;inset:0;background:#ffffff;opacity:0;pointer-events:none;z-index:40;
+  }
+  #hit-flash.flash-active{ animation:hitFlash .35s ease; }
+  @keyframes hitFlash{0%{opacity:0.75;}100%{opacity:0;}}
+
+  #sound-btn{
+    position:absolute;top:calc(16px + env(safe-area-inset-top));left:calc(16px + env(safe-area-inset-left));
+    width:38px;height:38px;border-radius:50%;background:var(--panel);
+    border:1px solid rgba(79,209,255,0.35);display:flex;align-items:center;justify-content:center;
+    font-size:18px;cursor:pointer;z-index:6;color:var(--text);
+    box-shadow:0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .screen{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:12px;
+    background:radial-gradient(circle at 50% 30%, rgba(30,40,80,0.55), rgba(3,5,14,0.92));
+    backdrop-filter:blur(3px);z-index:10;text-align:center;padding:20px;
+    overflow-y:auto;
+  }
+  .hidden{display:none!important;}
+
+  .title{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(28px,7vw,50px);font-weight:900;color:var(--text);
+    text-shadow:0 0 20px rgba(79,209,255,0.55);margin:0;letter-spacing:1px;
+    animation:titleGlow 3.4s ease-in-out infinite;
+  }
+  @keyframes titleGlow{
+    0%,100%{ text-shadow:0 0 18px rgba(79,209,255,0.5); }
+    50%{ text-shadow:0 0 32px rgba(79,209,255,0.85), 0 0 8px rgba(255,255,255,0.3); }
+  }
+  .subtitle{color:var(--muted);font-size:clamp(13px,3vw,17px);margin:-6px 0 4px;}
+
+  .btn{
+    appearance:none;border:none;cursor:pointer;position:relative;overflow:hidden;
+    padding:14px 34px;border-radius:14px;font-size:18px;font-weight:700;
+    font-family:'Rubik',sans-serif;
+    color:#031018;background:linear-gradient(180deg,var(--accent),#1c9fd8);
+    box-shadow:0 6px 0 #0e6f97,0 10px 20px rgba(0,0,0,0.4);
+    transition:transform .08s ease;min-width:220px;
+  }
+  .btn::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(120deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0) 55%);
+    pointer-events:none;
+  }
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #0e6f97,0 4px 10px rgba(0,0,0,0.4);}
+  .btn.secondary{
+    background:linear-gradient(180deg,#2a3350,#1a2038);
+    color:var(--text);box-shadow:0 6px 0 #0b0f1e,0 10px 20px rgba(0,0,0,0.4);
+    min-width:160px;padding:10px 22px;font-size:15px;
+  }
+  .btn.reward{
+    background:linear-gradient(180deg,#ffd166,#e0a02c);
+    color:#2b1a00;box-shadow:0 6px 0 #8a6210,0 10px 20px rgba(0,0,0,0.4);
+  }
+  .btn:disabled{opacity:.4;cursor:default;transform:none!important;box-shadow:none!important;}
+  .btn.small{padding:8px 14px;font-size:13px;min-width:auto;border-radius:10px;}
+
+  .score-row{display:flex;gap:16px;margin:4px 0 2px;flex-wrap:wrap;justify-content:center;}
+  .score-box{
+    background:var(--panel);border:1px solid rgba(79,209,255,0.3);
+    border-radius:14px;padding:10px 18px;min-width:92px;
+  }
+  .score-box .label{font-size:10.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  .score-box .value{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:800;color:var(--text);}
+
+  .record{color:var(--gold);font-weight:800;font-size:15px;text-shadow:0 0 10px rgba(255,209,102,0.6);}
+  .levelup{color:#8effa0;font-weight:800;font-size:15px;text-shadow:0 0 10px rgba(142,255,160,0.6);}
+
+  .spinner{
+    width:40px;height:40px;border-radius:50%;
+    border:4px solid rgba(79,209,255,0.25);border-top-color:var(--accent);
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .hint{color:var(--muted);font-size:12px;margin-top:0;max-width:320px;}
+  .credit{color:rgba(154,176,201,0.55);font-size:10.5px;letter-spacing:0.3px;margin-top:6px;}
+  .greeting{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--accent);margin:-4px 0 2px;text-shadow:0 0 8px rgba(79,209,255,0.4);}
+
+  .name-input{
+    font-family:'Rubik',sans-serif;font-size:18px;font-weight:600;color:var(--text);
+    background:var(--panel2);border:2px solid rgba(79,209,255,0.4);border-radius:14px;
+    padding:14px 20px;width:min(280px,80vw);text-align:center;outline:none;
+  }
+  .name-input:focus{border-color:var(--accent);box-shadow:0 0 16px rgba(79,209,255,0.3);}
+
+  .profile-name-row{display:flex;align-items:center;gap:12px;margin:6px 0 10px;flex-wrap:wrap;justify-content:center;}
+  .profile-name{
+    font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;color:var(--text);
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.3);border-radius:14px;padding:10px 20px;
+  }
+  .stats-list{width:100%;max-width:600px;display:flex;flex-direction:column;gap:8px;padding:4px 2px 24px;overflow-y:auto;}
+  .stat-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.18);border-radius:14px;padding:12px 18px;
+  }
+  .stat-row .stat-label{font-size:13px;color:var(--muted);}
+  .stat-row .stat-value{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:800;color:var(--gold);}
+
+  #menu-profile{
+    display:flex;align-items:center;gap:10px;background:var(--panel);
+    border:1px solid rgba(79,209,255,0.3);border-radius:18px;padding:11px 18px;
+    margin-bottom:6px;cursor:pointer;transition:transform .12s ease, border-color .12s ease;
+    box-shadow:0 0 20px rgba(79,209,255,0.1), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  #menu-profile:active{transform:scale(0.97);}
+  #menu-profile:hover{border-color:rgba(79,209,255,0.6);}
+  #menu-profile .rank-block{text-align:left;}
+  #menu-profile .rank-name{font-size:14px;font-weight:800;color:var(--accent);}
+  #menu-profile .lvl-text{font-size:11px;color:var(--muted);}
+  #menu-profile .xp-bar-bg{width:126px;height:7px;border-radius:4px;background:rgba(255,255,255,0.12);overflow:hidden;margin-top:4px;}
+  #menu-profile .xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#8effa0);width:0%;transition:width .3s ease;}
+  #menu-profile .crystals{font-family:'Orbitron',sans-serif;display:flex;align-items:center;gap:5px;font-weight:800;color:var(--gold);font-size:15px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.15);}
+  #menu-profile .crystals.stars-c{color:#7de0ff;}
+  #menu-profile .profile-arrow{color:var(--muted);font-size:20px;font-weight:700;margin-left:2px;}
+  .hangar-currency.stars-c{color:#7de0ff;border-color:rgba(125,224,255,0.4);}
+  .hangar-currency-group{display:flex;gap:8px;flex-wrap:wrap;}
+
+  .menu-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+  #hangar-screen, #levels-screen, #campaign-screen, #profile-screen{justify-content:flex-start;padding-top:calc(18px + env(safe-area-inset-top));}
+  .hangar-header{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:600px;gap:10px;}
+  .hangar-currency{font-family:'Orbitron',sans-serif;display:flex;align-items:center;gap:6px;font-weight:800;color:var(--gold);font-size:15px;background:var(--panel);border-radius:999px;padding:7px 15px;border:1px solid rgba(255,209,102,0.35);}
+  .panel-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin:14px 0 4px;}
+  .tabs{display:flex;gap:6px;margin:14px 0 8px;background:var(--panel);padding:6px;border-radius:16px;border:1px solid rgba(79,209,255,0.25);flex-wrap:wrap;justify-content:center;}
+  .tab-btn{
+    border:none;background:transparent;color:var(--muted);font-weight:700;font-size:13.5px;
+    padding:9px 18px;border-radius:11px;cursor:pointer;transition:background .15s ease;
+  }
+  .tab-btn.active{background:linear-gradient(180deg,var(--accent),#1c9fd8);color:#031018;}
+
+  .grid{
+    width:100%;max-width:600px;display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));
+    gap:14px;padding:6px 2px 20px;overflow-y:auto;
+  }
+  .card{
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.25);border-radius:18px;
+    padding:14px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  }
+  .card canvas{background:radial-gradient(circle at 50% 40%, rgba(79,209,255,0.12), transparent 70%);border-radius:12px;}
+  .card .name{font-size:13.5px;font-weight:800;color:var(--text);}
+  .card .req{font-size:11px;color:var(--muted);}
+  .card .price{font-size:12px;color:var(--gold);font-weight:700;}
+
+  .upg-card{
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.25);border-radius:18px;
+    padding:16px;display:flex;flex-direction:column;gap:7px;text-align:left;
+  }
+  .upg-card .top-row{display:flex;justify-content:space-between;align-items:center;}
+  .upg-card .name{font-size:14.5px;font-weight:800;color:var(--text);}
+  .upg-card .lvl{font-size:11px;color:var(--muted);}
+  .upg-card .dots{display:flex;gap:4px;margin:2px 0;}
+  .dot{width:16px;height:6px;border-radius:3px;background:rgba(255,255,255,0.15);}
+  .dot.filled{background:linear-gradient(90deg,var(--accent),#8effa0);}
+  .upg-card .effect{font-size:12px;color:var(--muted);}
+
+  .ach-card{
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.25);border-radius:18px;
+    padding:14px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;
+    position:relative;
+  }
+  .ach-card.unlocked{border-color:rgba(255,209,102,0.6);box-shadow:0 0 14px rgba(255,209,102,0.18);}
+  .ach-card.locked{opacity:0.55;}
+  .ach-icon{font-size:29px;line-height:1;}
+  .ach-card .name{font-size:12.5px;font-weight:800;color:var(--text);}
+  .ach-card .desc{font-size:10.5px;color:var(--muted);}
+  .ach-card .reward{font-size:11px;color:var(--gold);font-weight:700;}
+  .ach-card .progress{font-size:10px;color:var(--muted);}
+  .ach-check{position:absolute;top:8px;right:10px;font-size:14px;}
+
+  /* ---- Кейсы ---- */
+  .panel{width:100%;max-width:600px;display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 2px 24px;overflow-y:auto;}
+  .case-box{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    background:var(--panel2);border:1px solid rgba(255,209,102,0.35);border-radius:20px;
+    padding:20px 26px;box-shadow:0 0 24px rgba(255,209,102,0.12);
+  }
+  .case-icon{font-size:52px;line-height:1;animation:caseFloat 2.6s ease-in-out infinite;}
+  @keyframes caseFloat{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-8px) rotate(2deg);}}
+  .case-count{font-size:13px;color:var(--muted);}
+  .case-count b{font-family:'Orbitron',sans-serif;color:var(--gold);font-size:16px;}
+  .shop-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:800;color:var(--text);margin-top:6px;align-self:flex-start;}
+  .shop-item{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.25);border-radius:14px;
+    padding:12px 16px;
+  }
+  .shop-item .shop-name{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;color:var(--text);}
+  .shop-item .shop-icon{font-size:24px;}
+
+  /* ---- Путь пилота (уровни) ---- */
+  .levels-list{width:100%;max-width:600px;display:flex;flex-direction:column;gap:8px;padding:4px 2px 24px;overflow-y:auto;}
+  .level-row{
+    display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:14px;
+    background:var(--panel2);border:1px solid rgba(79,209,255,0.18);
+  }
+  .level-row.done{opacity:0.75;}
+  .level-row.current{border-color:rgba(79,209,255,0.7);box-shadow:0 0 16px rgba(79,209,255,0.22);background:rgba(79,209,255,0.08);}
+  .level-row.locked{opacity:0.4;}
+  .level-row .lv-badge{
+    font-family:'Orbitron',sans-serif;font-weight:800;font-size:13px;color:var(--text);
+    background:rgba(255,255,255,0.08);border-radius:10px;padding:6px 10px;min-width:44px;text-align:center;
+  }
+  .level-row.current .lv-badge{background:linear-gradient(180deg,var(--accent),#1c9fd8);color:#031018;}
+  .level-row .lv-reward{flex:1;font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .level-row .lv-reward b{color:var(--gold);font-family:'Orbitron',sans-serif;}
+  .level-row .diff-pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;}
+  .level-row .lv-status{font-size:16px;}
+  .level-row.case-row{border-left:3px solid var(--gold);}
+
+  #ads-overlay{
+    position:absolute;inset:0;background:rgba(2,4,10,0.92);z-index:20;
+    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;
+  }
+
+  #toast-container{
+    position:fixed;top:calc(12px + env(safe-area-inset-top));left:0;right:0;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    z-index:50;pointer-events:none;
+  }
+  .toast{
+    background:linear-gradient(180deg,rgba(30,22,4,0.95),rgba(10,8,2,0.95));
+    border:1px solid rgba(255,209,102,0.6);color:var(--gold);
+    font-weight:800;font-size:14px;padding:10px 18px;border-radius:999px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+    animation:toastIn .25s ease, toastOut .3s ease 2.1s forwards;
+  }
+  @keyframes toastIn{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(-10px);}}
+
+  /* ---- Вскрытие кейса ---- */
+  #case-reveal{
+    position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;
+    background:rgba(2,4,10,0.8);backdrop-filter:blur(5px);padding:20px;
+  }
+  .case-reveal-card{
+    background:linear-gradient(180deg,var(--panel2),rgba(20,14,4,0.95));
+    border:2px solid rgba(255,209,102,0.7);border-radius:26px;
+    padding:34px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;
+    box-shadow:0 0 50px rgba(255,209,102,0.3);
+    animation:caseRevealPop .45s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes caseRevealPop{0%{opacity:0;transform:scale(0.5) rotate(-8deg);}60%{transform:scale(1.08) rotate(3deg);}100%{opacity:1;transform:scale(1) rotate(0);}}
+  .case-reveal-icon{font-size:64px;animation:caseRevealSpin .6s ease;}
+  @keyframes caseRevealSpin{0%{transform:scale(0.3) rotate(0deg);}100%{transform:scale(1) rotate(360deg);}}
+  .case-reveal-title{font-size:13px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+  .case-reveal-value{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--gold);text-shadow:0 0 16px rgba(255,209,102,0.6);}
+
+  /* ---- Барабан открытия кейса (CS:GO-style) ---- */
+  .reel-viewport{
+    position:relative;width:min(340px,86vw);height:92px;overflow:hidden;border-radius:14px;
+    background:rgba(0,0,0,0.4);border:1px solid rgba(255,209,102,0.4);
+    box-shadow:inset 0 0 24px rgba(0,0,0,0.6);
+  }
+  .reel-track{display:flex;align-items:center;height:100%;will-change:transform;padding:0 0;}
+  .reel-item{
+    flex:0 0 74px;height:74px;margin:0 4px;border-radius:13px;
+    background:var(--panel2);border:2px solid rgba(255,255,255,0.12);
+    display:flex;align-items:center;justify-content:center;font-size:30px;
+    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+  .reel-item.rarity-common{border-color:rgba(154,176,201,0.4);}
+  .reel-item.rarity-uncommon{border-color:rgba(79,209,255,0.55);}
+  .reel-item.rarity-rare{border-color:rgba(180,120,255,0.65);}
+  .reel-item.rarity-legendary{border-color:rgba(255,209,102,0.8);}
+  .reel-item.landed{
+    box-shadow:0 0 22px currentColor, 0 0 40px rgba(255,209,102,0.4);
+    transform:scale(1.08);
+    animation:landedPulse .6s ease;
+  }
+  @keyframes landedPulse{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1.08);}}
+  .reel-marker{
+    position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--gold);
+    transform:translateX(-50%);box-shadow:0 0 12px var(--gold);z-index:2;
+  }
+  .reel-marker-tri{
+    position:absolute;left:50%;transform:translateX(-50%);width:0;height:0;z-index:3;
+    border-left:7px solid transparent;border-right:7px solid transparent;
+  }
+  .reel-marker-tri.top{top:-1px;border-top:9px solid var(--gold);}
+  .reel-marker-tri.bottom{bottom:-1px;border-bottom:9px solid var(--gold);}
+</style>
+</head>
+<body>
+<div id="game-container">
+  <canvas id="canvas"></canvas>
+
+  <div id="hud">
+    <div id="hud-score">0</div>
+    <div id="hud-best"></div>
+    <div id="hud-multiplier" class="hidden"></div>
+    <div id="hud-progress-bg" class="hidden"><div id="hud-progress-fill"></div></div>
+    <div id="hud-stage-diff" class="hidden"></div>
+    <div id="hud-sub">
+      <div id="hud-shield"></div>
+      <div id="hud-gems"></div>
+    </div>
+  </div>
+  <div id="hit-flash"></div>
+  <div id="best-badge">🏆 <b id="best-value">0</b></div>
+  <div id="sound-btn">🔊</div>
+
+  <div id="loading-screen" class="screen">
+    <div class="spinner"></div>
+    <div class="subtitle" id="loading-text">Загрузка...</div>
+    <div class="credit">by ggbaster · BrawkliEnterianment © 2026</div>
+  </div>
+
+  <div id="name-entry-screen" class="screen hidden">
+    <h1 class="title" id="welcome-title">Добро пожаловать, пилот!</h1>
+    <p class="subtitle" id="welcome-hint">Как тебя зовут?</p>
+    <input type="text" id="name-input" class="name-input" maxlength="16" autocomplete="off" placeholder="Введи имя...">
+    <button class="btn" id="confirm-name-btn">Продолжить</button>
+  </div>
+
+  <div id="profile-screen" class="screen hidden">
+    <div class="hangar-header">
+      <button class="btn secondary small" id="profile-back-btn">← <span id="profile-back-text">Назад</span></button>
+      <div class="hangar-currency">💎 <span id="profile-crystals">0</span></div>
+    </div>
+    <h2 class="panel-title" id="profile-title">Профиль пилота</h2>
+    <div class="profile-name-row">
+      <div class="profile-name" id="profile-name-display">Пилот</div>
+      <button class="btn secondary small" id="rename-btn">✏️ Изменить имя</button>
+    </div>
+    <div class="stats-list" id="stats-list"></div>
+  </div>
+
+  <div id="menu-screen" class="screen hidden">
+    <h1 class="title" id="menu-title">Космический Пилот</h1>
+    <p class="subtitle" id="menu-subtitle">Веди корабль сквозь метеоритный пояс</p>
+    <div class="greeting hidden" id="menu-greeting"></div>
+
+    <div id="menu-profile" role="button">
+      <div class="rank-block">
+        <div class="rank-name" id="menu-rank">Кадет · Ур. 1</div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="menu-xp-fill"></div></div>
+      </div>
+      <div class="crystals">💎 <span id="menu-crystals">0</span></div>
+      <div class="crystals stars-c">⭐ <span id="menu-stars">0</span></div>
+      <div class="profile-arrow">›</div>
+    </div>
+
+    <div class="menu-buttons">
+      <button class="btn" id="start-btn">🎮 Аркада</button>
+      <button class="btn" id="campaign-open-btn">🪐 Уровни</button>
+    </div>
+    <button class="btn secondary" id="hangar-open-btn">🛰 Ангар</button>
+    <button class="btn secondary" id="profile-open-btn">👤 Профиль</button>
+    <p class="hint" id="menu-hint">Веди пальцем/мышью или WASD/стрелками — корабль следует за тобой. Собирай кристаллы, уклоняйся от астероидов.</p>
+    <div class="credit">by ggbaster · BrawkliEnterianment © 2026</div>
+  </div>
+
+  <div id="campaign-screen" class="screen hidden">
+    <div class="hangar-header">
+      <button class="btn secondary small" id="campaign-back-btn">← <span id="campaign-back-text">Назад</span></button>
+      <div class="hangar-currency">💎 <span id="campaign-crystals">0</span></div>
+    </div>
+    <h2 class="panel-title" id="campaign-title">Уровни</h2>
+    <p class="hint" id="campaign-hint">Проходи этапы на время — сложность растёт с каждым уровнем.</p>
+    <div class="levels-list" id="campaign-list"></div>
+  </div>
+
+  <div id="stage-result-screen" class="screen hidden">
+    <h1 class="title" id="stage-result-title">Этап пройден!</h1>
+    <div class="score-row">
+      <div class="score-box">
+        <div class="label" id="stage-result-crystals-label">Кристаллы</div>
+        <div class="value" id="stage-result-crystals">+0</div>
+      </div>
+      <div class="score-box hidden" id="stage-result-stars-box">
+        <div class="label" id="stage-result-stars-label">Звёзды</div>
+        <div class="value" id="stage-result-stars">+0</div>
+      </div>
+    </div>
+    <button class="btn" id="stage-next-btn">Следующий этап</button>
+    <button class="btn secondary" id="stage-retry-btn">Повторить</button>
+    <button class="btn secondary" id="stage-back-btn">🪐 К уровням</button>
+  </div>
+
+  <div id="levels-screen" class="screen hidden">
+    <div class="hangar-header">
+      <button class="btn secondary small" id="levels-back-btn">← <span id="levels-back-text">Назад</span></button>
+      <div class="hangar-currency">💎 <span id="levels-crystals">0</span></div>
+    </div>
+    <h2 class="panel-title" id="levels-title">Путь пилота</h2>
+    <div class="levels-list" id="levels-list"></div>
+  </div>
+
+  <div id="hangar-screen" class="screen hidden">
+    <div class="hangar-header">
+      <button class="btn secondary small" id="hangar-back-btn">← <span id="back-text">Назад</span></button>
+      <div class="hangar-currency-group">
+        <div class="hangar-currency">💎 <span id="hangar-crystals">0</span></div>
+        <div class="hangar-currency stars-c">⭐ <span id="hangar-stars">0</span></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-skins" data-tab="skins">Скины</button>
+      <button class="tab-btn" id="tab-upgrades" data-tab="upgrades">Улучшения</button>
+      <button class="tab-btn" id="tab-cases" data-tab="cases">Кейсы</button>
+      <button class="tab-btn" id="tab-achievements" data-tab="achievements">Ачивки</button>
+    </div>
+    <div class="grid" id="skins-grid"></div>
+    <div class="grid hidden" id="upgrades-grid"></div>
+    <div class="panel hidden" id="cases-panel">
+      <div class="case-box">
+        <div class="case-icon">🎁</div>
+        <div class="case-count"><span id="cases-label">У вас кейсов:</span> <b id="cases-owned">0</b></div>
+        <button class="btn" id="open-case-btn">Открыть кейс</button>
+      </div>
+      <button class="btn reward small" id="earn-stars-btn">📺 +⭐ за рекламу</button>
+      <div class="shop-title" id="shop-title">Магазин кейсов</div>
+      <div id="case-shop-list"></div>
+    </div>
+    <div class="grid hidden" id="achievements-grid"></div>
+  </div>
+
+  <div id="gameover-screen" class="screen hidden">
+    <h1 class="title" id="over-title">Миссия окончена</h1>
+    <p class="record hidden" id="new-record-text">Новый рекорд!</p>
+    <p class="levelup hidden" id="levelup-text">Новый уровень!</p>
+    <div class="score-row">
+      <div class="score-box">
+        <div class="label" id="label-score">Очки</div>
+        <div class="value" id="final-score">0</div>
+      </div>
+      <div class="score-box">
+        <div class="label" id="label-best">Рекорд</div>
+        <div class="value" id="final-best">0</div>
+      </div>
+      <div class="score-box">
+        <div class="label" id="label-crystals">Кристаллы</div>
+        <div class="value" id="final-crystals">+0</div>
+      </div>
+      <div class="score-box">
+        <div class="label" id="label-xp">Опыт</div>
+        <div class="value" id="final-xp">+0</div>
+      </div>
+    </div>
+    <button class="btn reward" id="continue-btn">Продолжить (реклама)</button>
+    <button class="btn" id="restart-btn">Заново</button>
+    <button class="btn secondary" id="over-hangar-btn">🛰 Ангар</button>
+  </div>
+
+  <div id="toast-container"></div>
+  <div id="ads-overlay" class="hidden">Реклама...</div>
+
+  <div id="case-reveal" class="hidden">
+    <div class="case-reveal-card">
+      <div class="reel-viewport" id="reel-viewport">
+        <div class="reel-track" id="reel-track"></div>
+        <div class="reel-marker"></div>
+        <div class="reel-marker-tri top"></div>
+        <div class="reel-marker-tri bottom"></div>
+      </div>
+      <div class="case-reveal-title" id="case-reveal-title">Открываем…</div>
+      <div class="case-reveal-value hidden" id="case-reveal-value">+100 💎</div>
+      <button class="btn hidden" id="case-reveal-claim">Забрать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Yandex Games SDK: относительный путь /sdk.js — обязательный вариант при загрузке архива через Консоль разработчика.
+     (Абсолютный адрес с S3-хранилища указывать нельзя даже в комментариях — модерация ищет такие строки по всему файлу.) -->
+<script src="/sdk.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ===========================================================
+     ЛОКАЛИЗАЦИЯ
+  =========================================================== */
+  const TEXTS = {
+    ru:{
+      title:"Космический Пилот", subtitle:"Веди корабль сквозь метеоритный пояс",
+      hint:"Веди пальцем/мышью или WASD/стрелками — корабль следует за тобой. Собирай кристаллы, уклоняйся от астероидов.",
+      start:"Играть", loading:"Загрузка...",
+      over:"Миссия окончена", newRecord:"Новый рекорд!", levelUp:"🎉 Новый уровень!",
+      score:"Очки", best:"Рекорд", crystalsLbl:"Кристаллы", xpLbl:"Опыт", starsLbl:"Звёзды",
+      continueAd:"Продолжить (реклама)", restart:"Заново",
+      hangar:"Ангар", back:"Назад", skinsTab:"Скины", upgradesTab:"Улучшения", achievementsTab:"Ачивки", casesTab:"Кейсы",
+      buy:"Купить", equip:"Экипировать", equipped:"Экипировано", owned:"Куплено",
+      lockedLevel:(l)=>"Ур. "+l, maxLvl:"МАКС", level:"Ур.", bestPrefix:"🏆 Рекорд: ",
+      levelsTitle:"Путь пилота", casesOwned:"У вас кейсов:", openCase:"Открыть кейс", noCases:"Нет кейсов",
+      earnStars:"📺 +⭐ за рекламу", shopTitle:"Магазин кейсов", caseGot:"Вы получили", claim:"Забрать",
+      lvCurrent:"Текущий", lvDone:"Пройден", lvLocked:"Закрыт", caseLabel:"Кейс",
+      campaignTitle:"Уровни", campaignHint:"Проходи этапы на время — сложность растёт с каждым уровнем.",
+      stageLabel:"Этап", stageCleared:"Этап пройден!", stageFailed:"Этап не пройден",
+      stageNext:"Следующий этап", stageRetry:"Повторить", stageBack:"🪐 К уровням", stageGoal:"Цель",
+      arcadeBtn:"🎮 Аркада", campaignBtn:"🪐 Уровни",
+      diffTrivial:"Очень лёгкий", diffEasy:"Лёгкий", diffMedium:"Средний", diffAboveMedium:"Выше среднего",
+      diffHard:"Сложный", diffVeryHard:"Очень сложный", diffImpossible:"Невозможный",
+      profileBtn:"👤 Профиль", profileTitle:"Профиль пилота", nameLabel:"Имя пилота",
+      welcomeTitle:"Добро пожаловать, пилот!", welcomeHint:"Как тебя зовут?", namePlaceholder:"Введи имя...",
+      confirmName:"Продолжить", renameBtn:"✏️ Изменить имя",
+      statRuns:"Полётов сыграно", statBestSurvival:"Лучшая выживаемость", statBestGems:"Кристаллов за полёт (рекорд)",
+      statLifetime:"Заработано кристаллов всего", statMaxStage:"Макс. пройденный этап", statAchievements:"Достижений открыто",
+      statSkins:"Скинов собрано", secondsShort:"с"
+    },
+    en:{
+      title:"Space Pilot", subtitle:"Steer your ship through the meteor belt",
+      hint:"Drag with mouse/finger or use WASD/Arrows — the ship follows you. Collect crystals, dodge asteroids.",
+      start:"Play", loading:"Loading...",
+      over:"Mission Over", newRecord:"New record!", levelUp:"🎉 Level up!",
+      score:"Score", best:"Best", crystalsLbl:"Crystals", xpLbl:"XP", starsLbl:"Stars",
+      continueAd:"Continue (ad)", restart:"Restart",
+      hangar:"Hangar", back:"Back", skinsTab:"Skins", upgradesTab:"Upgrades", achievementsTab:"Achievements", casesTab:"Cases",
+      buy:"Buy", equip:"Equip", equipped:"Equipped", owned:"Owned",
+      lockedLevel:(l)=>"Lvl "+l, maxLvl:"MAX", level:"Lvl", bestPrefix:"🏆 Best: ",
+      levelsTitle:"Pilot's Path", casesOwned:"Cases owned:", openCase:"Open case", noCases:"No cases",
+      earnStars:"📺 +⭐ watch ad", shopTitle:"Case shop", caseGot:"You got", claim:"Claim",
+      lvCurrent:"Current", lvDone:"Done", lvLocked:"Locked", caseLabel:"Case",
+      campaignTitle:"Levels", campaignHint:"Clear timed stages — difficulty rises each level.",
+      stageLabel:"Stage", stageCleared:"Stage cleared!", stageFailed:"Stage failed",
+      stageNext:"Next stage", stageRetry:"Retry", stageBack:"🪐 To levels", stageGoal:"Goal",
+      arcadeBtn:"🎮 Arcade", campaignBtn:"🪐 Levels",
+      diffTrivial:"Very Easy", diffEasy:"Easy", diffMedium:"Medium", diffAboveMedium:"Above Average",
+      diffHard:"Hard", diffVeryHard:"Very Hard", diffImpossible:"Impossible",
+      profileBtn:"👤 Profile", profileTitle:"Pilot Profile", nameLabel:"Pilot name",
+      welcomeTitle:"Welcome, pilot!", welcomeHint:"What's your name?", namePlaceholder:"Enter name...",
+      confirmName:"Continue", renameBtn:"✏️ Rename",
+      statRuns:"Flights played", statBestSurvival:"Best survival", statBestGems:"Best crystals per flight",
+      statLifetime:"Total crystals earned", statMaxStage:"Max stage cleared", statAchievements:"Achievements unlocked",
+      statSkins:"Skins collected", secondsShort:"s"
+    }
+  };
+  let lang = "ru";
+  function t(key){ return (TEXTS[lang] && TEXTS[lang][key]!==undefined) ? TEXTS[lang][key] : TEXTS.ru[key]; }
+
+  /* ===========================================================
+     РАНГИ
+  =========================================================== */
+  const RANKS = [
+    {min:1,  name:{ru:"Кадет",     en:"Cadet"}},
+    {min:3,  name:{ru:"Пилот",     en:"Pilot"}},
+    {min:6,  name:{ru:"Ас",        en:"Ace"}},
+    {min:10, name:{ru:"Коммандер", en:"Commander"}},
+    {min:15, name:{ru:"Ветеран",   en:"Veteran"}},
+    {min:20, name:{ru:"Легенда",   en:"Legend"}}
+  ];
+  function getRank(level){
+    let r = RANKS[0];
+    for(const rr of RANKS){ if(level>=rr.min) r=rr; }
+    return r;
+  }
+  function xpToNext(level){ return 70 + (level-1)*45 + Math.floor((level-1)*(level-1)*1.8); }
+
+  /* ===========================================================
+     СКИНЫ
+  =========================================================== */
+  const SKINS = [
+    { id:"classic", name:{ru:"Стандарт",en:"Standard"}, reqLevel:1, price:0,
+      bodyFrom:"#3a6fd8", bodyTo:"#4fd1ff", flameFrom:"rgba(255,200,80,0.95)", flameTo:"rgba(255,180,60,0)", win:"#e8fbff", glow:"rgba(255,255,255,0.6)" },
+    { id:"comet", name:{ru:"Комета",en:"Comet"}, reqLevel:2, price:150,
+      bodyFrom:"#d84f2e", bodyTo:"#ffb347", flameFrom:"rgba(255,255,180,0.95)", flameTo:"rgba(255,140,40,0)", win:"#fff3d6", glow:"rgba(255,200,140,0.7)" },
+    { id:"arctic", name:{ru:"Арктика",en:"Arctic"}, reqLevel:3, price:220,
+      bodyFrom:"#4a7fae", bodyTo:"#dff6ff", flameFrom:"rgba(200,240,255,0.95)", flameTo:"rgba(120,200,255,0)", win:"#ffffff", glow:"rgba(200,240,255,0.8)" },
+    { id:"toxic", name:{ru:"Токсин",en:"Toxic"}, reqLevel:4, price:280,
+      bodyFrom:"#1e5c1e", bodyTo:"#9dff4f", flameFrom:"rgba(220,255,150,0.95)", flameTo:"rgba(140,255,60,0)", win:"#e8ffd0", glow:"rgba(160,255,90,0.7)" },
+    { id:"stealth", name:{ru:"Стелс",en:"Stealth"}, reqLevel:5, price:350,
+      bodyFrom:"#1a1f33", bodyTo:"#3d2b56", flameFrom:"rgba(140,255,180,0.9)", flameTo:"rgba(60,255,140,0)", win:"#8effc0", glow:"rgba(140,255,180,0.6)" },
+    { id:"crimson", name:{ru:"Багрянец",en:"Crimson"}, reqLevel:7, price:450,
+      bodyFrom:"#3a0d10", bodyTo:"#c81f36", flameFrom:"rgba(255,150,120,0.95)", flameTo:"rgba(255,60,40,0)", win:"#ffd6d6", glow:"rgba(255,90,90,0.75)" },
+    { id:"plasma", name:{ru:"Плазма",en:"Plasma"}, reqLevel:8, price:550,
+      bodyFrom:"#a23bd8", bodyTo:"#ff5cc8", flameFrom:"rgba(255,180,255,0.95)", flameTo:"rgba(200,80,255,0)", win:"#ffe0fb", glow:"rgba(255,140,255,0.7)" },
+    { id:"nebula", name:{ru:"Туманность",en:"Nebula"}, reqLevel:10, price:700,
+      bodyFrom:"#2b1a5e", bodyTo:"#7de0d3", flameFrom:"rgba(180,255,240,0.95)", flameTo:"rgba(90,200,255,0)", win:"#e0fff8", glow:"rgba(140,220,255,0.75)" },
+    { id:"gold", name:{ru:"Золото",en:"Gold"}, reqLevel:12, price:1000,
+      bodyFrom:"#8a6a1f", bodyTo:"#ffd166", flameFrom:"rgba(255,240,180,0.95)", flameTo:"rgba(255,200,80,0)", win:"#fff8e0", glow:"rgba(255,225,150,0.8)" },
+    { id:"legend", name:{ru:"Легенда",en:"Legend"}, reqLevel:16, price:1800, rainbow:true,
+      flameFrom:"rgba(255,255,255,0.95)", flameTo:"rgba(255,255,255,0)", win:"#ffffff", glow:"rgba(255,255,255,0.85)" }
+  ];
+  function getSkin(id){ return SKINS.find(s=>s.id===id) || SKINS[0]; }
+
+  /* ===========================================================
+     УЛУЧШЕНИЯ
+  =========================================================== */
+  const UPGRADES = [
+    { id:"shield", maxLevel:3, costs:[150,350,700],
+      name:{ru:"Щит", en:"Shield"},
+      effect:{ ru:(l)=> l>0 ? (l+" заряд(ов) защиты за полёт") : "Спасает от одного столкновения", en:(l)=> l>0 ? (l+" shield charge(s) per flight") : "Saves you from one crash" } },
+    { id:"agility", maxLevel:3, costs:[180,380,750],
+      name:{ru:"Манёвренность", en:"Agility"},
+      effect:{ ru:(l)=> "+"+(l*20)+"% отклика управления", en:(l)=> "+"+(l*20)+"% control response" } },
+    { id:"luck", maxLevel:3, costs:[150,320,650],
+      name:{ru:"Удача старателя", en:"Prospector's Luck"},
+      effect:{ ru:(l)=> "+"+(l*15)+"% кристаллов за полёт", en:(l)=> "+"+(l*15)+"% crystals per flight" } },
+    { id:"magnet", maxLevel:3, costs:[160,340,680],
+      name:{ru:"Магнит", en:"Magnet"},
+      effect:{ ru:(l)=> "+"+(l*10)+"px радиус сбора кристаллов", en:(l)=> "+"+(l*10)+"px crystal pickup radius" } }
+  ];
+
+  /* ===========================================================
+     ДОСТИЖЕНИЯ
+  =========================================================== */
+  const ACHIEVEMENTS = [
+    { id:"first_flight", icon:"🚀", reward:50, name:{ru:"Первый полёт",en:"First Flight"}, desc:{ru:"Завершите один полёт",en:"Complete one flight"},
+      check:(p)=> p.stats.runs>=1, progress:(p)=> Math.min(p.stats.runs,1)+"/1" },
+    { id:"survive_15", icon:"⏱", reward:50, name:{ru:"Разминка",en:"Warm-up"}, desc:{ru:"Продержитесь 15 секунд",en:"Survive 15 seconds"},
+      check:(p)=> p.stats.bestSurvival>=15, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),15)+"/15" },
+    { id:"survive_30", icon:"⏳", reward:120, name:{ru:"Выносливость",en:"Endurance"}, desc:{ru:"Продержитесь 30 секунд",en:"Survive 30 seconds"},
+      check:(p)=> p.stats.bestSurvival>=30, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),30)+"/30" },
+    { id:"survive_60", icon:"🕐", reward:250, name:{ru:"Минута в поясе",en:"One Minute In"}, desc:{ru:"Продержитесь 60 секунд",en:"Survive 60 seconds"},
+      check:(p)=> p.stats.bestSurvival>=60, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),60)+"/60" },
+    { id:"survive_120", icon:"🌌", reward:500, name:{ru:"Легенда пояса",en:"Belt Legend"}, desc:{ru:"Продержитесь 120 секунд",en:"Survive 120 seconds"},
+      check:(p)=> p.stats.bestSurvival>=120, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),120)+"/120" },
+    { id:"score_50", icon:"⭐", reward:60, name:{ru:"Новичок",en:"Rookie"}, desc:{ru:"Наберите 50 очков за полёт",en:"Score 50 in one flight"},
+      check:(p)=> p.bestScore>=50, progress:(p)=> Math.min(p.bestScore,50)+"/50" },
+    { id:"score_150", icon:"🌟", reward:180, name:{ru:"Уверенная рука",en:"Steady Hand"}, desc:{ru:"Наберите 150 очков за полёт",en:"Score 150 in one flight"},
+      check:(p)=> p.bestScore>=150, progress:(p)=> Math.min(p.bestScore,150)+"/150" },
+    { id:"score_400", icon:"💫", reward:400, name:{ru:"Мастер маршрута",en:"Route Master"}, desc:{ru:"Наберите 400 очков за полёт",en:"Score 400 in one flight"},
+      check:(p)=> p.bestScore>=400, progress:(p)=> Math.min(p.bestScore,400)+"/400" },
+    { id:"gem_hunter", icon:"💎", reward:150, name:{ru:"Охотник за кристаллами",en:"Gem Hunter"}, desc:{ru:"Соберите 10 кристаллов за полёт",en:"Collect 10 crystals in one flight"},
+      check:(p)=> p.stats.bestGemsRun>=10, progress:(p)=> Math.min(p.stats.bestGemsRun,10)+"/10" },
+    { id:"gem_master", icon:"👑", reward:350, starsReward:3, name:{ru:"Повелитель кристаллов",en:"Gem Master"}, desc:{ru:"Соберите 25 кристаллов за полёт",en:"Collect 25 crystals in one flight"},
+      check:(p)=> p.stats.bestGemsRun>=25, progress:(p)=> Math.min(p.stats.bestGemsRun,25)+"/25" },
+    { id:"collector", icon:"🎨", reward:50, name:{ru:"Коллекционер",en:"Collector"}, desc:{ru:"Купите любой скин",en:"Buy any skin"},
+      check:(p)=> p.ownedSkins.length>1, progress:null },
+    { id:"fashionista", icon:"👗", reward:300, starsReward:4, name:{ru:"Модник космоса",en:"Space Fashionista"}, desc:{ru:"Соберите 6 скинов",en:"Own 6 skins"},
+      check:(p)=> p.ownedSkins.length>=6, progress:(p)=> Math.min(p.ownedSkins.length,6)+"/6" },
+    { id:"level_5", icon:"🎖", reward:150, name:{ru:"Растущая звезда",en:"Rising Star"}, desc:{ru:"Достигните 5 уровня",en:"Reach level 5"},
+      check:(p)=> p.level>=5, progress:(p)=> Math.min(p.level,5)+"/5" },
+    { id:"level_10", icon:"🏵", reward:300, starsReward:3, name:{ru:"Опытный пилот",en:"Seasoned Pilot"}, desc:{ru:"Достигните 10 уровня",en:"Reach level 10"},
+      check:(p)=> p.level>=10, progress:(p)=> Math.min(p.level,10)+"/10" },
+    { id:"level_15", icon:"🏆", reward:550, starsReward:6, name:{ru:"Элита флота",en:"Fleet Elite"}, desc:{ru:"Достигните 15 уровня",en:"Reach level 15"},
+      check:(p)=> p.level>=15, progress:(p)=> Math.min(p.level,15)+"/15" },
+    { id:"rich", icon:"💰", reward:100, name:{ru:"Магнат",en:"Magnate"}, desc:{ru:"Заработайте 1000 кристаллов",en:"Earn 1000 crystals total"},
+      check:(p)=> p.stats.lifetimeCrystals>=1000, progress:(p)=> Math.min(p.stats.lifetimeCrystals,1000)+"/1000" },
+    { id:"tycoon", icon:"🏦", reward:450, starsReward:5, name:{ru:"Космический олигарх",en:"Space Tycoon"}, desc:{ru:"Заработайте 5000 кристаллов",en:"Earn 5000 crystals total"},
+      check:(p)=> p.stats.lifetimeCrystals>=5000, progress:(p)=> Math.min(p.stats.lifetimeCrystals,5000)+"/5000" },
+    { id:"max_shield", icon:"🛡", reward:200, starsReward:4, name:{ru:"Неуязвимый",en:"Untouchable"}, desc:{ru:"Прокачайте щит до максимума",en:"Max out the shield upgrade"},
+      check:(p)=> (p.upgrades.shield||0)>=3, progress:null },
+    { id:"max_agility", icon:"⚡", reward:200, starsReward:4, name:{ru:"Молниеносный",en:"Lightning Fast"}, desc:{ru:"Прокачайте манёвренность до максимума",en:"Max out the agility upgrade"},
+      check:(p)=> (p.upgrades.agility||0)>=3, progress:null },
+    { id:"veteran", icon:"✈️", reward:150, name:{ru:"Ветеран неба",en:"Sky Veteran"}, desc:{ru:"Сыграйте 20 полётов",en:"Play 20 flights"},
+      check:(p)=> p.stats.runs>=20, progress:(p)=> Math.min(p.stats.runs,20)+"/20" },
+    { id:"legend_pilot", icon:"🌠", reward:700, starsReward:8, name:{ru:"Легендарный пилот",en:"Legendary Pilot"}, desc:{ru:"Сыграйте 100 полётов",en:"Play 100 flights"},
+      check:(p)=> p.stats.runs>=100, progress:(p)=> Math.min(p.stats.runs,100)+"/100" },
+    { id:"stage_10", icon:"🪐", reward:250, name:{ru:"Первый пояс пройден",en:"First Belt Cleared"}, desc:{ru:"Пройдите 10 этапов режима «Уровни»",en:"Clear 10 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=10, progress:(p)=> Math.min(p.stats.maxStageCleared||0,10)+"/10" },
+    { id:"stage_20", icon:"🌌", reward:450, starsReward:5, name:{ru:"Глубокий космос",en:"Deep Space"}, desc:{ru:"Пройдите 20 этапов режима «Уровни»",en:"Clear 20 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=20, progress:(p)=> Math.min(p.stats.maxStageCleared||0,20)+"/20" },
+    { id:"stage_30", icon:"🌠", reward:700, starsReward:7, name:{ru:"Покоритель этапов",en:"Stage Conqueror"}, desc:{ru:"Пройдите 30 этапов режима «Уровни»",en:"Clear 30 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=30, progress:(p)=> Math.min(p.stats.maxStageCleared||0,30)+"/30" },
+    { id:"stage_40", icon:"🛰", reward:1000, starsReward:10, name:{ru:"Штурман бездны",en:"Void Navigator"}, desc:{ru:"Пройдите 40 этапов режима «Уровни»",en:"Clear 40 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=40, progress:(p)=> Math.min(p.stats.maxStageCleared||0,40)+"/40" },
+    { id:"stage_50", icon:"👑", reward:1500, starsReward:15, name:{ru:"Владыка пояса",en:"Belt Overlord"}, desc:{ru:"Пройдите 50 этапов режима «Уровни»",en:"Clear 50 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=50, progress:(p)=> Math.min(p.stats.maxStageCleared||0,50)+"/50" }
+  ];
+
+  /* ===========================================================
+     ПРОФИЛЬ ИГРОКА
+  =========================================================== */
+  let profile = {
+    name:"", bestScore:0, crystals:0, stars:0, xp:0, level:1,
+    ownedSkins:["classic"], equippedSkin:"classic",
+    upgrades:{ shield:0, agility:0, luck:0, magnet:0 },
+    stats:{ runs:0, lifetimeCrystals:0, bestSurvival:0, bestGemsRun:0, maxStageCleared:0 },
+    achievements:{},
+    cases:{ standard:0 },
+    campaign:{ unlocked:1, completed:{} }
+  };
+
+  // Сложность и цель конкретного этапа режима "Уровни"
+  function stageGoalSeconds(stage){ return 16 + stage*6; }
+
+  // "Сила" игрока (уровень + суммарная прокачка) снижает ощущаемую сложность этапа
+  function playerPowerBonus(){
+    const u = profile.upgrades || {};
+    const upgSum = (u.shield||0)+(u.agility||0)+(u.luck||0)+(u.magnet||0);
+    return profile.level*0.5 + upgSum;
+  }
+  function effectiveStageDifficulty(stage){
+    return Math.max(1, stage - playerPowerBonus());
+  }
+  function stageDifficultyBoost(stage, elapsedInStage){
+    const eff = effectiveStageDifficulty(stage);
+    return Math.min(260, eff*17 + elapsedInStage*1.5);
+  }
+  function stageSpawnInterval(stage, elapsedInStage){
+    const eff = effectiveStageDifficulty(stage);
+    return Math.max(0.3, 0.98 - eff*0.018 - elapsedInStage*0.006);
+  }
+  function stageDifficultyLabel(stage){
+    const eff = effectiveStageDifficulty(stage);
+    if(eff<=2) return { key:"diffTrivial", color:"#8effa0" };
+    if(eff<=6) return { key:"diffEasy", color:"#8ff0ff" };
+    if(eff<=12) return { key:"diffMedium", color:"#4fd1ff" };
+    if(eff<=20) return { key:"diffAboveMedium", color:"#ffd166" };
+    if(eff<=30) return { key:"diffHard", color:"#ff9d6b" };
+    if(eff<=45) return { key:"diffVeryHard", color:"#ff6b6b" };
+    return { key:"diffImpossible", color:"#ff3b6b" };
+  }
+
+  // Награда за конкретный уровень: кристаллы всегда, кейс + бонус кристаллов каждый 5 уровень
+  function levelRewardFor(level){
+    const crystals = 20 + level*4;
+    const isCaseLevel = level % 5 === 0;
+    const caseBonus = isCaseLevel ? (80 + level*6) : 0;
+    return { crystals, isCaseLevel, caseBonus };
+  }
+
+  function loadLocalProfile(){
+    try{
+      const raw = localStorage.getItem("space_pilot_profile");
+      if(raw) return deepMerge(profile, JSON.parse(raw));
+    }catch(e){}
+    return JSON.parse(JSON.stringify(profile));
+  }
+  function deepMerge(base, extra){
+    const out = JSON.parse(JSON.stringify(base));
+    for(const k in extra){
+      if(extra[k] && typeof extra[k]==="object" && !Array.isArray(extra[k])){
+        out[k] = Object.assign({}, out[k]||{}, extra[k]);
+      } else {
+        out[k] = extra[k];
+      }
+    }
+    return out;
+  }
+  function saveProfile(){
+    try{ localStorage.setItem("space_pilot_profile", JSON.stringify(profile)); }catch(e){}
+    if(player){
+      try{ player.setData({ profile: profile }, true).catch(()=>{}); }catch(e){}
+    }
+  }
+
+  function addProgress(scoreAchieved){
+    const luckLvl = profile.upgrades.luck || 0;
+    const crystalsEarned = Math.round((scoreAchieved*0.8 + 5) * (1 + luckLvl*0.15));
+    const xpEarned = Math.round(scoreAchieved*0.32 + 6);
+
+    profile.crystals += crystalsEarned;
+    profile.xp += xpEarned;
+    profile.stats.runs += 1;
+    profile.stats.lifetimeCrystals += crystalsEarned;
+
+    let leveledUp = false;
+    const levelUps = [];
+    while(profile.xp >= xpToNext(profile.level)){
+      profile.xp -= xpToNext(profile.level);
+      profile.level++;
+      leveledUp = true;
+      const reward = levelRewardFor(profile.level);
+      profile.crystals += reward.crystals;
+      profile.stats.lifetimeCrystals += reward.crystals;
+      let gotCase = false;
+      if(reward.isCaseLevel){
+        profile.cases.standard = (profile.cases.standard||0) + 1;
+        profile.crystals += reward.caseBonus;
+        profile.stats.lifetimeCrystals += reward.caseBonus;
+        gotCase = true;
+      }
+      levelUps.push({ level:profile.level, crystals: reward.crystals + reward.caseBonus, gotCase });
+    }
+    const isRecord = scoreAchieved > profile.bestScore;
+    if(isRecord) profile.bestScore = scoreAchieved;
+
+    return { crystalsEarned, xpEarned, leveledUp, levelUps, isRecord, rank:getRank(profile.level) };
+  }
+
+  function updateRunStats(survivalSeconds, gemsThisRun){
+    profile.stats.bestSurvival = Math.max(profile.stats.bestSurvival, survivalSeconds);
+    profile.stats.bestGemsRun = Math.max(profile.stats.bestGemsRun, gemsThisRun);
+  }
+
+  function checkAchievements(){
+    const newly = [];
+    ACHIEVEMENTS.forEach(a=>{
+      if(!profile.achievements[a.id] && a.check(profile)){
+        profile.achievements[a.id] = true;
+        profile.crystals += a.reward;
+        profile.stats.lifetimeCrystals += a.reward;
+        if(a.starsReward) profile.stars += a.starsReward;
+        newly.push(a);
+      }
+    });
+    return newly;
+  }
+
+  /* ===========================================================
+     КЕЙСЫ И ЗВЁЗДЫ
+  =========================================================== */
+  const CASE_SHOP = [
+    { id:"standard", price:40, name:{ru:"Кейс",en:"Case"} }
+  ];
+
+  function rollCaseReward(){
+    const roll = Math.random();
+    if(roll < 0.40) return { type:"crystals", amount: 50+Math.floor(Math.random()*51), icon:"💎", rarity:"common" };
+    if(roll < 0.65) return { type:"crystals", amount: 120+Math.floor(Math.random()*101), icon:"💰", rarity:"uncommon" };
+    if(roll < 0.85) return { type:"stars", amount: 2+Math.floor(Math.random()*3), icon:"⭐", rarity:"uncommon" };
+    if(roll < 0.95) return { type:"stars", amount: 6+Math.floor(Math.random()*5), icon:"🌟", rarity:"rare" };
+    const lockedSkins = SKINS.filter(s=>!profile.ownedSkins.includes(s.id));
+    if(lockedSkins.length){
+      const skin = lockedSkins[Math.floor(Math.random()*lockedSkins.length)];
+      return { type:"skin", skinId: skin.id, icon:"🛸", rarity:"legendary" };
+    }
+    return { type:"crystals", amount:300, icon:"💰", rarity:"rare" };
+  }
+
+  // Пул "обманных" предметов для ленты — визуально те же категории, что и реальные награды
+  const REEL_FILLER_POOL = [
+    { type:"crystals", icon:"💎", rarity:"common" },
+    { type:"crystals", icon:"💎", rarity:"common" },
+    { type:"crystals", icon:"💰", rarity:"uncommon" },
+    { type:"stars",    icon:"⭐", rarity:"uncommon" },
+    { type:"stars",    icon:"🌟", rarity:"rare" },
+    { type:"skin",     icon:"🛸", rarity:"legendary" }
+  ];
+
+  function applyCaseReward(reward){
+    if(reward.type==="crystals"){ profile.crystals += reward.amount; profile.stats.lifetimeCrystals += reward.amount; }
+    else if(reward.type==="stars"){ profile.stars += reward.amount; }
+    else if(reward.type==="skin"){ profile.ownedSkins.push(reward.skinId); }
+    saveProfile();
+  }
+
+  function openCase(){
+    if(!document.getElementById("case-reveal").classList.contains("hidden")) return;
+    if((profile.cases.standard||0) <= 0) return;
+    profile.cases.standard--;
+    const reward = rollCaseReward();
+    applyCaseReward(reward);
+    showCaseReveal(reward);
+    renderCasesTab();
+  }
+
+  /* ---- Тосты ---- */
+  let toastQueue = [], toastShowing = false;
+  function queueToast(text){
+    toastQueue.push(text);
+    if(!toastShowing) showNextToast();
+  }
+  function showNextToast(){
+    if(!toastQueue.length){ toastShowing = false; return; }
+    toastShowing = true;
+    const text = toastQueue.shift();
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = text;
+    document.getElementById("toast-container").appendChild(el);
+    setTimeout(()=>{ el.remove(); showNextToast(); }, 2400);
+  }
+
+  /* ===========================================================
+     ЗВУК
+  =========================================================== */
+  let audioCtx = null, soundOn = true;
+  function ensureAudio(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    }
+  }
+  function beep(freq, dur, type, vol){
+    if(!soundOn) return;
+    ensureAudio();
+    if(!audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type||"sine";
+    o.frequency.value = freq;
+    g.gain.value = vol!==undefined?vol:0.08;
+    o.connect(g); g.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    g.gain.setValueAtTime(g.gain.value, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+dur);
+    o.start(now); o.stop(now+dur);
+  }
+  const sndCollect = ()=>beep(920,0.1,"sine",0.06);
+  const sndHit = ()=>beep(120,0.35,"sawtooth",0.09);
+  const sndShield = ()=>beep(660,0.16,"triangle",0.08);
+  const sndBuy = ()=>beep(1000,0.1,"sine",0.06);
+  const sndSpin = ()=>beep(340,0.12,"square",0.05);
+
+  document.getElementById("sound-btn").addEventListener("click", (e)=>{
+    e.stopPropagation();
+    soundOn = !soundOn;
+    document.getElementById("sound-btn").textContent = soundOn ? "🔊" : "🔇";
+  });
+
+  /* ===========================================================
+     CANVAS
+  =========================================================== */
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  let W=0,H=0,DPR=1;
+  let xMin=0,xMax=0,yMin=0,yMax=0;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio||1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.floor(W*DPR);
+    canvas.height = Math.floor(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    xMin = W*0.07; xMax = W*0.60;
+    yMin = 34; yMax = H-34;
+    rebuildStars();
+  }
+  window.addEventListener("resize", resize);
+  function clamp(v,mn,mx){ return Math.max(mn, Math.min(mx, v)); }
+
+  /* ===========================================================
+     ФОН
+  =========================================================== */
+  let starsFar=[], starsNear=[], nebulas=[], comets=[];
+  let cometTimer = 3;
+  function rebuildStars(){
+    starsFar = []; starsNear = []; nebulas = [];
+    const farCount = Math.floor((W*H)/9000);
+    const nearCount = Math.floor((W*H)/16000);
+    for(let i=0;i<farCount;i++) starsFar.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.2+0.3, tw:Math.random()*Math.PI*2});
+    for(let i=0;i<nearCount;i++) starsNear.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.8+0.8, tw:Math.random()*Math.PI*2});
+    for(let i=0;i<4;i++) nebulas.push({
+      x:Math.random()*W, y:Math.random()*H, r:120+Math.random()*160, hue: 190+Math.random()*140,
+      vx:(Math.random()*2-1)*7, vy:(Math.random()*2-1)*4
+    });
+  }
+  function spawnComet(){
+    const startX = W*0.15 + Math.random()*W*0.6;
+    comets.push({
+      x:startX, y:-30, vx:-90-Math.random()*70, vy:180+Math.random()*90,
+      life:1.3, maxLife:1.3
+    });
+  }
+
+  /* ===========================================================
+     ИГРОВЫЕ ПАРАМЕТРЫ / СОСТОЯНИЕ
+  =========================================================== */
+  let state = "loading"; // loading | menu | hangar | levels | campaign | playing | gameover | stageresult
+  let gameMode = "arcade"; // "arcade" | "campaign"
+  let campaignStage = 1;
+  let arcadeMultiplier = 1;
+  let ship = { x:0, y:0, vx:0, vy:0, rot:0, r:19 };
+  let targetX=0, targetY=0;
+  let dragActive=false;
+  let keysPressed = {};
+
+  let obstacles = [];
+  let crystals = [];
+  let particles = [];
+  let textParticles = [];
+  let shakeTime = 0, shakeMag = 0, shakeDur = 0.0001;
+
+  let score = 0;
+  let displayedScore = -1;
+  let elapsed = 0;
+  let collectedThisRun = 0;
+  let usedContinue = false;
+  let sessionsFinished = 0;
+  let shieldCharges = 0;
+  let invulnUntil = -1;
+  let obstacleTimer = 0, crystalTimer = 0;
+
+  function resetShip(){
+    ship.x = W*0.3; ship.y = H*0.5; ship.vx=0; ship.vy=0; ship.rot=0;
+    targetX = ship.x; targetY = ship.y;
+  }
+
+  function resetGame(){
+    obstacles = []; crystals = []; particles = [];
+    score = 0; displayedScore=-1; elapsed = 0; collectedThisRun = 0;
+    usedContinue = false;
+    shieldCharges = profile.upgrades.shield || 0;
+    invulnUntil = -1;
+    obstacleTimer = 0.6; crystalTimer = 1.0;
+    resetShip();
+    refreshShieldHud(); refreshGemsHud();
+  }
+
+  function refreshShieldHud(){
+    document.getElementById("hud-shield").textContent = shieldCharges>0 ? ("🛡×"+shieldCharges) : "";
+  }
+  function refreshGemsHud(){
+    document.getElementById("hud-gems").textContent = collectedThisRun>0 ? ("💎×"+collectedThisRun) : "";
+  }
+
+  /* ===========================================================
+     ВВОД — свободный полёт (перетаскивание / WASD / стрелки)
+  =========================================================== */
+  const container = document.getElementById("game-container");
+
+  function pointFromEvent(e){
+    return { x: clamp(e.clientX, xMin, xMax), y: clamp(e.clientY, yMin, yMax) };
+  }
+  container.addEventListener("pointerdown", (e)=>{
+    if(e.target.closest(".screen") || e.target.closest("#sound-btn")) return;
+    ensureAudio();
+    if(state!=="playing") return;
+    dragActive = true;
+    const p = pointFromEvent(e);
+    targetX = p.x; targetY = p.y;
+  });
+  container.addEventListener("pointermove",(e)=>{
+    if(!dragActive || state!=="playing") return;
+    const p = pointFromEvent(e);
+    targetX = p.x; targetY = p.y;
+  });
+  window.addEventListener("pointerup", ()=>{ dragActive = false; });
+  window.addEventListener("pointercancel", ()=>{ dragActive = false; });
+
+  window.addEventListener("keydown",(e)=>{
+    if(document.activeElement && document.activeElement.tagName==="INPUT") return;
+    const code = e.code;
+    if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","KeyW","KeyA","KeyS","KeyD"].includes(code)){
+      e.preventDefault();
+      keysPressed[code] = true;
+    }
+    if((code==="Space" || code==="Enter") && state==="menu"){
+      e.preventDefault();
+      startGame();
+    }
+  });
+  window.addEventListener("keyup",(e)=>{ keysPressed[e.code] = false; });
+
+  // Требование 1.6.1.8 / 1.6.2.7 — отключаем системное контекстное меню (долгий тап / ПКМ)
+  window.addEventListener("contextmenu",(e)=>{ e.preventDefault(); });
+
+  // Требование 1.3 — звук останавливается при потере фокуса вкладки/сворачивании окна
+  document.addEventListener("visibilitychange", ()=>{
+    if(!audioCtx) return;
+    try{
+      if(document.hidden){ audioCtx.suspend(); }
+      else { audioCtx.resume(); }
+    }catch(e){}
+  });
+
+  /* ===========================================================
+     ЭКРАНЫ
+  =========================================================== */
+  const screens = {
+    loading: document.getElementById("loading-screen"),
+    nameentry: document.getElementById("name-entry-screen"),
+    menu: document.getElementById("menu-screen"),
+    hangar: document.getElementById("hangar-screen"),
+    levels: document.getElementById("levels-screen"),
+    campaign: document.getElementById("campaign-screen"),
+    stageresult: document.getElementById("stage-result-screen"),
+    profile: document.getElementById("profile-screen"),
+    gameover: document.getElementById("gameover-screen")
+  };
+  function showScreen(name){
+    Object.values(screens).forEach(s=>s.classList.add("hidden"));
+    if(screens[name]) screens[name].classList.remove("hidden");
+  }
+
+  function goMenu(){
+    state = "menu";
+    refreshProfileWidgets();
+    showScreen("menu");
+    const greet = document.getElementById("menu-greeting");
+    if(profile.name){
+      greet.textContent = (lang==="ru" ? "Привет, " : "Hi, ") + profile.name + "!";
+      greet.classList.remove("hidden");
+    } else {
+      greet.classList.add("hidden");
+    }
+    document.getElementById("hud-score").textContent = "0";
+    document.getElementById("hud-best").textContent = "";
+    document.getElementById("hud-multiplier").classList.add("hidden");
+    document.getElementById("hud-progress-bg").classList.add("hidden");
+    document.getElementById("hud-stage-diff").classList.add("hidden");
+    document.getElementById("hud-shield").textContent = "";
+    document.getElementById("hud-gems").textContent = "";
+  }
+
+  let nameEntryReturnsTo = "menu";
+  function openNameEntry(returnsTo){
+    nameEntryReturnsTo = returnsTo || "menu";
+    document.getElementById("welcome-title").textContent = t("welcomeTitle");
+    document.getElementById("welcome-hint").textContent = t("welcomeHint");
+    document.getElementById("name-input").placeholder = t("namePlaceholder");
+    document.getElementById("confirm-name-btn").textContent = t("confirmName");
+    document.getElementById("name-input").value = profile.name || "";
+    state = "nameentry";
+    showScreen("nameentry");
+    setTimeout(()=>{ document.getElementById("name-input").focus(); }, 50);
+  }
+  function confirmNameEntry(){
+    const val = document.getElementById("name-input").value.trim().slice(0,16);
+    profile.name = val || (lang==="ru" ? "Пилот" : "Pilot");
+    saveProfile();
+    if(nameEntryReturnsTo === "profile") openProfileScreen();
+    else goMenu();
+  }
+
+  function openProfileScreen(){
+    state = "profile";
+    showScreen("profile");
+    renderProfileStats();
+  }
+  function renderProfileStats(){
+    document.getElementById("profile-crystals").textContent = profile.crystals;
+    document.getElementById("profile-title").textContent = t("profileTitle");
+    document.getElementById("profile-back-text").textContent = t("back");
+    document.getElementById("profile-name-display").textContent = profile.name || "Пилот";
+    document.getElementById("rename-btn").textContent = t("renameBtn");
+
+    const s = profile.stats;
+    const achTotal = ACHIEVEMENTS.length;
+    const achDone = Object.keys(profile.achievements||{}).length;
+    const rows = [
+      [t("statRuns"), s.runs||0],
+      [t("statBestSurvival"), Math.floor(s.bestSurvival||0)+t("secondsShort")],
+      [t("statBestGems"), s.bestGemsRun||0],
+      [t("statLifetime"), s.lifetimeCrystals||0],
+      [t("statMaxStage"), s.maxStageCleared||0],
+      [t("statAchievements"), achDone+"/"+achTotal],
+      [t("statSkins"), profile.ownedSkins.length+"/"+SKINS.length]
+    ];
+    const list = document.getElementById("stats-list");
+    list.innerHTML = "";
+    rows.forEach(([label,value])=>{
+      const row = document.createElement("div");
+      row.className = "stat-row";
+      const l = document.createElement("div"); l.className="stat-label"; l.textContent=label;
+      const v = document.createElement("div"); v.className="stat-value"; v.textContent=value;
+      row.appendChild(l); row.appendChild(v);
+      list.appendChild(row);
+    });
+  }
+
+  function startGame(){
+    gameMode = "arcade";
+    resetGame();
+    state = "playing";
+    Object.values(screens).forEach(s=>s.classList.add("hidden"));
+    document.getElementById("hud-score").textContent = "0";
+    document.getElementById("hud-best").textContent = t("bestPrefix") + profile.bestScore;
+    document.getElementById("hud-best").classList.remove("hidden");
+    document.getElementById("hud-multiplier").classList.remove("hidden");
+    document.getElementById("hud-multiplier").textContent = "×1.0";
+    document.getElementById("hud-progress-bg").classList.add("hidden");
+    document.getElementById("hud-stage-diff").classList.add("hidden");
+    try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.start(); } }catch(e){}
+    // Запрос полноэкранного режима — важно для мобильных устройств (п. 1.6.1.1)
+    try{ if(window.ysdk && ysdk.screen && ysdk.screen.fullscreen){ ysdk.screen.fullscreen.request(); } }catch(e){}
+  }
+
+  function startCampaignStage(stageNum){
+    gameMode = "campaign";
+    campaignStage = stageNum;
+    resetGame();
+    state = "playing";
+    Object.values(screens).forEach(s=>s.classList.add("hidden"));
+    document.getElementById("hud-score").textContent = "0/"+stageGoalSeconds(stageNum)+" c";
+    document.getElementById("hud-best").classList.add("hidden");
+    document.getElementById("hud-multiplier").classList.add("hidden");
+    document.getElementById("hud-progress-bg").classList.remove("hidden");
+    document.getElementById("hud-progress-fill").style.width = "0%";
+    const diff = stageDifficultyLabel(stageNum);
+    const diffEl = document.getElementById("hud-stage-diff");
+    diffEl.textContent = t("stageLabel")+" "+stageNum+" · "+t(diff.key);
+    diffEl.style.color = diff.color;
+    diffEl.classList.remove("hidden");
+    try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.start(); } }catch(e){}
+    try{ if(window.ysdk && ysdk.screen && ysdk.screen.fullscreen){ ysdk.screen.fullscreen.request(); } }catch(e){}
+  }
+
+  function endGame(){
+    if(state==="gameover") return;
+    state = "gameover";
+    sndHit();
+    spawnExplosion(ship.x, ship.y, getSkin(profile.equippedSkin).bodyTo, 26);
+    triggerShake(16, 0.45);
+    triggerHitFlash();
+    try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.stop(); } }catch(e){}
+
+    const result = addProgress(score);
+    updateRunStats(elapsed, collectedThisRun);
+    const newlyUnlocked = checkAchievements();
+    const achBonus = newlyUnlocked.reduce((s,a)=>s+a.reward,0);
+    const achStarBonus = newlyUnlocked.reduce((s,a)=>s+(a.starsReward||0),0);
+    const levelCrystalsTotal = result.levelUps.reduce((s,l)=>s+l.crystals,0);
+    let recordStars = 0;
+    if(result.isRecord){ recordStars = 2; profile.stars += recordStars; }
+    saveProfile();
+    updateBestBadge();
+
+    document.getElementById("final-score").textContent = score;
+    document.getElementById("final-best").textContent = profile.bestScore;
+    document.getElementById("final-crystals").textContent = "+"+(result.crystalsEarned+achBonus+levelCrystalsTotal);
+    document.getElementById("final-xp").textContent = "+"+result.xpEarned;
+    document.getElementById("new-record-text").classList.toggle("hidden", !result.isRecord);
+    document.getElementById("new-record-text").textContent = t("newRecord") + (recordStars>0 ? " +"+recordStars+" ⭐" : "");
+    document.getElementById("levelup-text").classList.toggle("hidden", !result.leveledUp);
+    if(result.leveledUp){
+      document.getElementById("levelup-text").textContent = t("levelUp")+" "+result.rank.name[lang]+" ("+t("level")+" "+profile.level+")";
+    }
+    document.getElementById("continue-btn").classList.toggle("hidden", usedContinue);
+    document.getElementById("continue-btn").disabled = usedContinue;
+
+    showScreen("gameover");
+    result.levelUps.forEach(lu=>{
+      if(lu.gotCase) queueToast("🎁 "+t("level")+" "+lu.level+"! +"+lu.crystals+" 💎 + "+t("caseLabel"));
+      else queueToast("⬆️ "+t("level")+" "+lu.level+"! +"+lu.crystals+" 💎");
+    });
+    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
+    trySubmitLeaderboard(profile.bestScore);
+
+    sessionsFinished++;
+    if(sessionsFinished>0 && sessionsFinished % 3 === 0) showInterstitial();
+  }
+
+  function handleCrash(hitX, hitY){
+    if(shieldCharges>0){
+      shieldCharges--;
+      refreshShieldHud();
+      invulnUntil = elapsed + 1.1;
+      targetX = clamp(targetX - 60, xMin, xMax);
+      spawnExplosion(hitX, hitY, "#ffd166", 10);
+      triggerShake(7, 0.22);
+      sndShield();
+      return;
+    }
+    if(gameMode==="campaign"){ failStage(); return; }
+    endGame();
+  }
+
+  function reviveAfterAd(){
+    usedContinue = true;
+    state = "playing";
+    Object.values(screens).forEach(s=>s.classList.add("hidden"));
+    obstacles = obstacles.filter(o => o.x > ship.x + 260);
+    ship.x = W*0.3; ship.y = H*0.5; targetX = ship.x; targetY = ship.y;
+    invulnUntil = elapsed + 1.3;
+    try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.start(); } }catch(e){}
+  }
+
+  /* ===========================================================
+     РЕЖИМ "УРОВНИ" (КАМПАНИЯ)
+  =========================================================== */
+  function openCampaign(){ state = "campaign"; showScreen("campaign"); renderCampaignList(); }
+
+  function renderCampaignList(){
+    document.getElementById("campaign-crystals").textContent = profile.crystals;
+    document.getElementById("campaign-title").textContent = t("campaignTitle");
+    document.getElementById("campaign-hint").textContent = t("campaignHint");
+    document.getElementById("campaign-back-text").textContent = t("back");
+    const list = document.getElementById("campaign-list");
+    list.innerHTML = "";
+    const unlocked = profile.campaign.unlocked || 1;
+    const maxShown = Math.max(20, unlocked + 6);
+    for(let stage=1; stage<=maxShown; stage++){
+      const row = document.createElement("div");
+      let cls = "level-row";
+      let statusIcon = "";
+      const done = !!profile.campaign.completed[stage];
+      const isUnlocked = stage <= unlocked;
+      if(done){ cls += " done"; statusIcon = "✅"; }
+      else if(stage === unlocked){ cls += " current"; statusIcon = "▶️"; }
+      else { cls += " locked"; statusIcon = "🔒"; }
+      row.className = cls;
+
+      const badge = document.createElement("div");
+      badge.className = "lv-badge";
+      badge.textContent = t("stageLabel")+" "+stage;
+      row.appendChild(badge);
+
+      const rewardEl = document.createElement("div");
+      rewardEl.className = "lv-reward";
+      const goal = stageGoalSeconds(stage);
+      const crystalsReward = 40 + stage*10;
+      const starsReward = 1 + (stage%5===0 ? 2 : 0);
+      const diff = stageDifficultyLabel(stage);
+      rewardEl.innerHTML = "<span>⏱ "+goal+" c</span><span><b>+"+crystalsReward+"</b> 💎</span>"+
+        "<span><b>+"+starsReward+"</b> ⭐</span>"+
+        "<span class='diff-pill' style='color:"+diff.color+"'>"+t(diff.key)+"</span>";
+      row.appendChild(rewardEl);
+
+      const statusEl = document.createElement("div");
+      statusEl.className = "lv-status";
+      statusEl.textContent = statusIcon;
+      row.appendChild(statusEl);
+
+      if(isUnlocked){
+        row.style.cursor = "pointer";
+        row.addEventListener("click",(e)=>{ e.stopPropagation(); startCampaignStage(stage); });
+      }
+
+      list.appendChild(row);
+    }
+  }
+
+  function completeStage(){
+    if(state!=="playing") return;
+    state = "stageresult";
+    sndCollect();
+    spawnExplosion(ship.x, ship.y, "#8effa0", 20);
+    try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.stop(); } }catch(e){}
+
+    const crystalsReward = 40 + campaignStage*10;
+    const starsReward = 1 + (campaignStage%5===0 ? 2 : 0);
+    profile.crystals += crystalsReward;
+    profile.stats.lifetimeCrystals += crystalsReward;
+    profile.stars += starsReward;
+    profile.campaign.completed[campaignStage] = true;
+    if(campaignStage+1 > (profile.campaign.unlocked||1)) profile.campaign.unlocked = campaignStage+1;
+    profile.stats.maxStageCleared = Math.max(profile.stats.maxStageCleared||0, campaignStage);
+    const newlyUnlocked = checkAchievements();
+    saveProfile();
+
+    showStageResult(true, crystalsReward, starsReward);
+    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
+  }
+
+  function failStage(){
+    if(state!=="playing") return;
+    state = "stageresult";
+    sndHit();
+    spawnExplosion(ship.x, ship.y, getSkin(profile.equippedSkin).bodyTo, 26);
+    triggerShake(16, 0.45);
+    triggerHitFlash();
+    try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.stop(); } }catch(e){}
+    showStageResult(false, 0, 0);
+  }
+
+  function showStageResult(success, crystalsReward, starsReward){
+    document.getElementById("stage-result-title").textContent = success ? t("stageCleared") : t("stageFailed");
+    document.getElementById("stage-result-crystals-label").textContent = t("crystalsLbl");
+    document.getElementById("stage-result-crystals").textContent = "+"+crystalsReward;
+    const starsBox = document.getElementById("stage-result-stars-box");
+    if(starsReward>0){
+      document.getElementById("stage-result-stars-label").textContent = t("starsLbl");
+      document.getElementById("stage-result-stars").textContent = "+"+starsReward;
+      starsBox.classList.remove("hidden");
+    } else {
+      starsBox.classList.add("hidden");
+    }
+    document.getElementById("stage-next-btn").textContent = t("stageNext");
+    document.getElementById("stage-next-btn").classList.toggle("hidden", !success);
+    document.getElementById("stage-retry-btn").textContent = t("stageRetry");
+    document.getElementById("stage-back-btn").textContent = t("stageBack");
+    updateBestBadge();
+    showScreen("stageresult");
+  }
+
+  document.getElementById("start-btn").addEventListener("click",(e)=>{ e.stopPropagation(); startGame(); });
+  document.getElementById("restart-btn").addEventListener("click",(e)=>{ e.stopPropagation(); startGame(); });
+  document.getElementById("continue-btn").addEventListener("click",(e)=>{ e.stopPropagation(); showRewardedForContinue(); });
+  document.getElementById("hangar-open-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openHangar(); });
+  document.getElementById("profile-open-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openProfileScreen(); });
+  document.getElementById("profile-back-btn").addEventListener("click",(e)=>{ e.stopPropagation(); goMenu(); });
+  document.getElementById("rename-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openNameEntry("profile"); });
+  document.getElementById("confirm-name-btn").addEventListener("click",(e)=>{ e.stopPropagation(); confirmNameEntry(); });
+  document.getElementById("name-input").addEventListener("keydown",(e)=>{
+    e.stopPropagation();
+    if(e.key==="Enter"){ e.preventDefault(); confirmNameEntry(); }
+  });
+  document.getElementById("over-hangar-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openHangar(); });
+  document.getElementById("hangar-back-btn").addEventListener("click",(e)=>{ e.stopPropagation(); goMenu(); });
+  document.getElementById("menu-profile").addEventListener("click",(e)=>{ e.stopPropagation(); openLevels(); });
+  document.getElementById("levels-back-btn").addEventListener("click",(e)=>{ e.stopPropagation(); goMenu(); });
+  document.getElementById("open-case-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openCase(); });
+  document.getElementById("earn-stars-btn").addEventListener("click",(e)=>{ e.stopPropagation(); showRewardedForStars(); });
+  document.getElementById("case-reveal-claim").addEventListener("click",(e)=>{
+    e.stopPropagation();
+    document.getElementById("case-reveal").classList.add("hidden");
+  });
+  document.getElementById("campaign-open-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openCampaign(); });
+  document.getElementById("campaign-back-btn").addEventListener("click",(e)=>{ e.stopPropagation(); goMenu(); });
+  document.getElementById("stage-next-btn").addEventListener("click",(e)=>{ e.stopPropagation(); startCampaignStage(campaignStage+1); });
+  document.getElementById("stage-retry-btn").addEventListener("click",(e)=>{ e.stopPropagation(); startCampaignStage(campaignStage); });
+  document.getElementById("stage-back-btn").addEventListener("click",(e)=>{ e.stopPropagation(); openCampaign(); });
+
+  /* ===========================================================
+     АНГАР
+  =========================================================== */
+  function openHangar(){ state = "hangar"; showScreen("hangar"); renderHangar(); }
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("skins-grid").classList.toggle("hidden", tab!=="skins");
+      document.getElementById("upgrades-grid").classList.toggle("hidden", tab!=="upgrades");
+      document.getElementById("cases-panel").classList.toggle("hidden", tab!=="cases");
+      document.getElementById("achievements-grid").classList.toggle("hidden", tab!=="achievements");
+    });
+  });
+
+  function renderHangar(){
+    document.getElementById("hangar-crystals").textContent = profile.crystals;
+    document.getElementById("hangar-stars").textContent = profile.stars;
+    renderSkinsGrid(); renderUpgradesGrid(); renderCasesTab(); renderAchievementsGrid();
+  }
+
+  function renderCasesTab(){
+    document.getElementById("hangar-crystals").textContent = profile.crystals;
+    document.getElementById("hangar-stars").textContent = profile.stars;
+    document.getElementById("cases-owned").textContent = profile.cases.standard||0;
+    document.getElementById("cases-label").textContent = t("casesOwned");
+    document.getElementById("earn-stars-btn").textContent = t("earnStars");
+    document.getElementById("shop-title").textContent = t("shopTitle");
+    const openBtn = document.getElementById("open-case-btn");
+    openBtn.textContent = t("openCase");
+    openBtn.disabled = (profile.cases.standard||0) <= 0;
+
+    const list = document.getElementById("case-shop-list");
+    list.innerHTML = "";
+    CASE_SHOP.forEach(item=>{
+      const row = document.createElement("div");
+      row.className = "shop-item";
+      const left = document.createElement("div");
+      left.className = "shop-name";
+      left.innerHTML = "<span class='shop-icon'>🎁</span> " + item.name[lang];
+      row.appendChild(left);
+      const btn = document.createElement("button");
+      btn.className = "btn small";
+      btn.textContent = item.price + " ⭐";
+      btn.disabled = profile.stars < item.price;
+      btn.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        if(profile.stars >= item.price){
+          profile.stars -= item.price;
+          profile.cases[item.id] = (profile.cases[item.id]||0) + 1;
+          saveProfile(); sndBuy();
+          renderCasesTab();
+        }
+      });
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  }
+
+  const REEL_ITEM_W = 78; // ширина + отступы одного элемента ленты (см. .reel-item)
+  let reelResolveTimer = null;
+
+  function rewardValueText(reward){
+    if(reward.type==="crystals") return "+"+reward.amount+" 💎";
+    if(reward.type==="stars") return "+"+reward.amount+" ⭐";
+    if(reward.type==="skin") return getSkin(reward.skinId).name[lang];
+    return "";
+  }
+
+  function showCaseReveal(reward){
+    if(reelResolveTimer){ clearTimeout(reelResolveTimer); reelResolveTimer = null; }
+    const titleEl = document.getElementById("case-reveal-title");
+    const valEl = document.getElementById("case-reveal-value");
+    const claimBtn = document.getElementById("case-reveal-claim");
+    titleEl.textContent = lang==="ru" ? "Открываем…" : "Opening…";
+    valEl.classList.add("hidden");
+    claimBtn.classList.add("hidden");
+
+    const track = document.getElementById("reel-track");
+    const viewport = document.getElementById("reel-viewport");
+    track.style.transition = "none";
+    track.style.transform = "translateX(0px)";
+    track.innerHTML = "";
+
+    const total = 44;
+    const winIndex = 34; // с запасом впереди, чтобы лента долго прокручивалась
+    const items = [];
+    for(let i=0;i<total;i++){
+      items.push(i===winIndex ? reward : REEL_FILLER_POOL[Math.floor(Math.random()*REEL_FILLER_POOL.length)]);
+    }
+    items.forEach((it,i)=>{
+      const el = document.createElement("div");
+      el.className = "reel-item rarity-"+(it.rarity||"common");
+      el.textContent = it.icon || "🎁";
+      el.dataset.index = i;
+      track.appendChild(el);
+    });
+
+    document.getElementById("case-reveal").classList.remove("hidden");
+    sndSpin();
+
+    // Запускаем прокрутку на следующем кадре, чтобы transition сработал корректно
+    requestAnimationFrame(()=>{
+      const viewportW = viewport.clientWidth;
+      const jitter = (Math.random()-0.5) * (REEL_ITEM_W*0.6);
+      const targetOffset = winIndex*REEL_ITEM_W + REEL_ITEM_W/2 - viewportW/2 + jitter;
+      track.style.transition = "transform 4.4s cubic-bezier(0.09,0.72,0.12,1)";
+      track.style.transform = "translateX(-"+targetOffset+"px)";
+    });
+
+    reelResolveTimer = setTimeout(()=>{
+      const winEl = track.querySelector('[data-index="'+winIndex+'"]');
+      if(winEl) winEl.classList.add("landed");
+      sndBuy();
+      titleEl.textContent = t("caseGot");
+      valEl.textContent = rewardValueText(reward);
+      valEl.classList.remove("hidden");
+      claimBtn.textContent = t("claim");
+      claimBtn.classList.remove("hidden");
+    }, 4500);
+  }
+
+  /* ===========================================================
+     ПУТЬ ПИЛОТА (просмотр наград по уровням)
+  =========================================================== */
+  function openLevels(){ state = "levels"; showScreen("levels"); renderLevelsList(); }
+
+  function renderLevelsList(){
+    document.getElementById("levels-crystals").textContent = profile.crystals;
+    document.getElementById("levels-title").textContent = t("levelsTitle");
+    document.getElementById("levels-back-text").textContent = t("back");
+    const list = document.getElementById("levels-list");
+    list.innerHTML = "";
+    const maxLevel = Math.max(30, profile.level + 8);
+    for(let lvl=1; lvl<=maxLevel; lvl++){
+      const reward = levelRewardFor(lvl);
+      const row = document.createElement("div");
+      let cls = "level-row";
+      let statusIcon = "";
+      if(lvl < profile.level){ cls += " done"; statusIcon = "✅"; }
+      else if(lvl === profile.level){ cls += " current"; statusIcon = "▶️"; }
+      else { cls += " locked"; statusIcon = "🔒"; }
+      if(reward.isCaseLevel) cls += " case-row";
+      row.className = cls;
+
+      const badge = document.createElement("div");
+      badge.className = "lv-badge";
+      badge.textContent = t("level")+" "+lvl;
+      row.appendChild(badge);
+
+      const rewardEl = document.createElement("div");
+      rewardEl.className = "lv-reward";
+      let html = "<span><b>+"+reward.crystals+"</b> 💎</span>";
+      if(reward.isCaseLevel){ html += "<span>🎁 <b>+"+reward.caseBonus+"</b> 💎</span>"; }
+      rewardEl.innerHTML = html;
+      row.appendChild(rewardEl);
+
+      const statusEl = document.createElement("div");
+      statusEl.className = "lv-status";
+      statusEl.textContent = statusIcon;
+      row.appendChild(statusEl);
+
+      list.appendChild(row);
+    }
+  }
+
+  function renderSkinsGrid(){
+    const grid = document.getElementById("skins-grid");
+    grid.innerHTML = "";
+    SKINS.forEach(skin=>{
+      const owned = profile.ownedSkins.includes(skin.id);
+      const equipped = profile.equippedSkin === skin.id;
+      const lockedByLevel = profile.level < skin.reqLevel;
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const cnv = document.createElement("canvas");
+      cnv.width = 76; cnv.height = 76;
+      card.appendChild(cnv);
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "name"; nameEl.textContent = skin.name[lang];
+      card.appendChild(nameEl);
+
+      const btn = document.createElement("button");
+      btn.className = "btn small" + (owned && !equipped ? "" : " secondary");
+
+      if(equipped){
+        btn.textContent = "✓ " + t("equipped"); btn.disabled = true;
+      } else if(owned){
+        btn.textContent = t("equip");
+        btn.addEventListener("click",(e)=>{ e.stopPropagation(); profile.equippedSkin = skin.id; saveProfile(); renderSkinsGrid(); });
+      } else if(lockedByLevel){
+        btn.textContent = "🔒 " + t("lockedLevel")(skin.reqLevel); btn.disabled = true;
+      } else {
+        btn.textContent = skin.price + " 💎";
+        btn.disabled = profile.crystals < skin.price;
+        btn.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          if(profile.crystals >= skin.price){
+            profile.crystals -= skin.price;
+            profile.ownedSkins.push(skin.id);
+            profile.equippedSkin = skin.id;
+            saveProfile(); sndBuy(); renderSkinsGrid();
+            document.getElementById("hangar-crystals").textContent = profile.crystals;
+          }
+        });
+      }
+      card.appendChild(btn);
+      grid.appendChild(card);
+
+      const tctx = cnv.getContext("2d");
+      drawShipAt(tctx, 38, 40, 15, -0.1, skin.id, 0.7, 0.6);
+    });
+  }
+
+  function renderUpgradesGrid(){
+    const grid = document.getElementById("upgrades-grid");
+    grid.innerHTML = "";
+    UPGRADES.forEach(u=>{
+      const lvl = profile.upgrades[u.id] || 0;
+      const maxed = lvl >= u.maxLevel;
+      const card = document.createElement("div");
+      card.className = "upg-card";
+
+      const top = document.createElement("div");
+      top.className = "top-row";
+      const nameEl = document.createElement("div"); nameEl.className="name"; nameEl.textContent = u.name[lang];
+      const lvlEl = document.createElement("div"); lvlEl.className="lvl"; lvlEl.textContent = lvl+"/"+u.maxLevel;
+      top.appendChild(nameEl); top.appendChild(lvlEl);
+      card.appendChild(top);
+
+      const dots = document.createElement("div"); dots.className="dots";
+      for(let i=0;i<u.maxLevel;i++){ const d=document.createElement("div"); d.className="dot"+(i<lvl?" filled":""); dots.appendChild(d); }
+      card.appendChild(dots);
+
+      const eff = document.createElement("div"); eff.className="effect"; eff.textContent = u.effect[lang](lvl);
+      card.appendChild(eff);
+
+      const btn = document.createElement("button"); btn.className="btn small";
+      if(maxed){ btn.textContent = t("maxLvl"); btn.disabled = true; }
+      else{
+        const cost = u.costs[lvl];
+        btn.textContent = t("buy") + " · " + cost + " 💎";
+        btn.disabled = profile.crystals < cost;
+        btn.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          if(profile.crystals >= cost){
+            profile.crystals -= cost;
+            profile.upgrades[u.id] = lvl+1;
+            saveProfile(); sndBuy(); renderUpgradesGrid();
+            document.getElementById("hangar-crystals").textContent = profile.crystals;
+          }
+        });
+      }
+      card.appendChild(btn);
+      grid.appendChild(card);
+    });
+  }
+
+  function renderAchievementsGrid(){
+    const grid = document.getElementById("achievements-grid");
+    grid.innerHTML = "";
+    ACHIEVEMENTS.forEach(a=>{
+      const unlocked = !!profile.achievements[a.id];
+      const card = document.createElement("div");
+      card.className = "ach-card " + (unlocked ? "unlocked" : "locked");
+      if(unlocked){ const c=document.createElement("div"); c.className="ach-check"; c.textContent="✅"; card.appendChild(c); }
+      const icon = document.createElement("div"); icon.className="ach-icon"; icon.textContent=a.icon; card.appendChild(icon);
+      const nameEl = document.createElement("div"); nameEl.className="name"; nameEl.textContent=a.name[lang]; card.appendChild(nameEl);
+      const descEl = document.createElement("div"); descEl.className="desc"; descEl.textContent=a.desc[lang]; card.appendChild(descEl);
+      if(!unlocked && a.progress){ const p=document.createElement("div"); p.className="progress"; p.textContent=a.progress(profile); card.appendChild(p); }
+      const rewardEl = document.createElement("div"); rewardEl.className="reward";
+      rewardEl.textContent=(unlocked?"✓ ":"+")+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"");
+      card.appendChild(rewardEl);
+      grid.appendChild(card);
+    });
+  }
+
+  function refreshProfileWidgets(){
+    updateBestBadge();
+    const rank = getRank(profile.level);
+    document.getElementById("menu-rank").textContent = rank.name[lang] + " · " + t("level") + " " + profile.level;
+    document.getElementById("menu-crystals").textContent = profile.crystals;
+    document.getElementById("menu-stars").textContent = profile.stars;
+    const pct = Math.min(100, Math.round((profile.xp/xpToNext(profile.level))*100));
+    document.getElementById("menu-xp-fill").style.width = pct+"%";
+  }
+  function updateBestBadge(){ document.getElementById("best-value").textContent = profile.bestScore; }
+
+  /* ===========================================================
+     СПАВН ОБЪЕКТОВ
+  =========================================================== */
+  function spawnObstacle(){
+    const roll = Math.random();
+    let kind;
+    if(roll < 0.45) kind = "small";
+    else if(roll < 0.8) kind = "medium";
+    else kind = "large";
+
+    const cfg = {
+      small:  { r:[16,24], speed:[260,420], color:["#8a93b0","#4c5170"] },
+      medium: { r:[30,42], speed:[200,340], color:["#a07a55","#5c4128"] },
+      large:  { r:[48,62], speed:[140,240], color:["#c2564a","#5c1f1a"] }
+    }[kind];
+
+    const r = cfg.r[0] + Math.random()*(cfg.r[1]-cfg.r[0]);
+    const speedBoost = gameMode==="campaign" ? stageDifficultyBoost(campaignStage, elapsed) : Math.min(320, elapsed*3.4);
+    const speed = cfg.speed[0] + Math.random()*(cfg.speed[1]-cfg.speed[0]) + speedBoost;
+
+    const craterCount = 3+Math.floor(Math.random()*3);
+    const craters = [];
+    for(let i=0;i<craterCount;i++){
+      craters.push({ ox:(Math.random()*2-1)*r*0.5, oy:(Math.random()*2-1)*r*0.5, cr: r*(0.12+Math.random()*0.14) });
+    }
+
+    obstacles.push({
+      x: W+60, y: 30+Math.random()*(H-60), r, vx:-speed, vy:(Math.random()*2-1)*30,
+      rot: Math.random()*Math.PI*2, spin:(Math.random()*2-1)*1.4,
+      colorA:cfg.color[0], colorB:cfg.color[1], craters
+    });
+  }
+
+  function spawnCrystal(){
+    const speedBoost = Math.min(120, elapsed*2);
+    crystals.push({
+      x: W+40, y: 50+Math.random()*(H-100), r:11,
+      vx:-(190+speedBoost), phase:Math.random()*Math.PI*2, rot:0
+    });
+  }
+
+  function spawnParticles(x,y,color,count,spread,speed,life){
+    for(let i=0;i<count;i++){
+      const ang = Math.random()*Math.PI*2;
+      const sp = speed*(0.4+Math.random()*0.8);
+      particles.push({
+        x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp,
+        life, maxLife:life, size:2+Math.random()*3, color
+      });
+    }
+    if(spread){} // reserved
+  }
+  function spawnExplosion(x,y,color,count){ spawnParticles(x,y,color,count||18,true,220,0.7); }
+  function spawnSparkle(x,y,color){ spawnParticles(x,y,color,10,true,140,0.5); }
+  function spawnTextParticle(x,y,text,color){
+    textParticles.push({ x, y, vy:-46, life:0.9, maxLife:0.9, text, color });
+  }
+  function triggerShake(mag, dur){
+    shakeMag = Math.max(shakeMag, mag);
+    shakeTime = Math.max(shakeTime, dur);
+    shakeDur = dur;
+  }
+  function triggerHitFlash(){
+    const el = document.getElementById("hit-flash");
+    el.classList.remove("flash-active");
+    void el.offsetWidth;
+    el.classList.add("flash-active");
+  }
+
+  /* ===========================================================
+     ОБНОВЛЕНИЕ
+  =========================================================== */
+  function update(dt){
+    starsFar.forEach(s=>{ s.x -= dt*18; if(s.x<0) s.x += W; s.tw += dt*2; });
+    starsNear.forEach(s=>{ s.x -= dt*40; if(s.x<0) s.x += W; s.tw += dt*3; });
+    nebulas.forEach(n=>{
+      n.x += n.vx*dt; n.y += n.vy*dt;
+      if(n.x < -n.r) n.x = W+n.r; if(n.x > W+n.r) n.x = -n.r;
+      if(n.y < -n.r) n.y = H+n.r; if(n.y > H+n.r) n.y = -n.r;
+    });
+
+    cometTimer -= dt;
+    if(cometTimer <= 0){ spawnComet(); cometTimer = 3.5 + Math.random()*4.5; }
+    for(let i=comets.length-1;i>=0;i--){
+      const c = comets[i];
+      c.x += c.vx*dt; c.y += c.vy*dt; c.life -= dt;
+      if(c.life<=0 || c.y>H+40 || c.x<-40) comets.splice(i,1);
+    }
+
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      p.vx *= (1-2.2*dt); p.vy *= (1-2.2*dt);
+      p.life -= dt;
+      if(p.life<=0) particles.splice(i,1);
+    }
+    for(let i=textParticles.length-1;i>=0;i--){
+      const tp = textParticles[i];
+      tp.y += tp.vy*dt;
+      tp.life -= dt;
+      if(tp.life<=0) textParticles.splice(i,1);
+    }
+    if(shakeTime>0) shakeTime = Math.max(0, shakeTime-dt);
+
+    if(state!=="playing") return;
+    elapsed += dt;
+
+    const agilityLvl = profile.upgrades.agility || 0;
+    const followFactor = 6.5 + agilityLvl*2.2;
+    const keySpeed = 340 + agilityLvl*60;
+
+    let dx=0, dy=0;
+    if(keysPressed["ArrowLeft"]||keysPressed["KeyA"]) dx -= 1;
+    if(keysPressed["ArrowRight"]||keysPressed["KeyD"]) dx += 1;
+    if(keysPressed["ArrowUp"]||keysPressed["KeyW"]) dy -= 1;
+    if(keysPressed["ArrowDown"]||keysPressed["KeyS"]) dy += 1;
+    if(dx || dy){
+      const len = Math.hypot(dx,dy) || 1;
+      targetX = clamp(targetX + (dx/len)*keySpeed*dt, xMin, xMax);
+      targetY = clamp(targetY + (dy/len)*keySpeed*dt, yMin, yMax);
+    }
+
+    const prevX = ship.x, prevY = ship.y;
+    const lerpAmt = Math.min(1, followFactor*dt);
+    ship.x += (targetX - ship.x)*lerpAmt;
+    ship.y += (targetY - ship.y)*lerpAmt;
+    ship.vx = (ship.x-prevX)/Math.max(dt,0.0001);
+    ship.vy = (ship.y-prevY)/Math.max(dt,0.0001);
+    ship.rot = clamp(ship.vy*0.0022, -0.55, 0.55);
+
+    if(Math.random() < dt*46){
+      const skin = getSkin(profile.equippedSkin);
+      const jitter = (Math.random()*2-1)*4;
+      spawnParticles(ship.x-ship.r*0.95, ship.y+jitter, skin.flameFrom, 1+Math.floor(Math.random()*2), false, 70, 0.4);
+    }
+    if(Math.random() < dt*3){
+      spawnParticles(ship.x+ship.r*0.2, ship.y-ship.r*0.3, "rgba(255,255,255,0.9)", 1, false, 18, 0.5);
+    }
+
+    obstacleTimer -= dt;
+    if(obstacleTimer<=0){
+      spawnObstacle();
+      const interval = gameMode==="campaign" ? stageSpawnInterval(campaignStage, elapsed) : Math.max(0.24, 1.05 - elapsed*0.016);
+      obstacleTimer = interval * (0.75+Math.random()*0.5);
+    }
+    crystalTimer -= dt;
+    if(crystalTimer<=0){
+      spawnCrystal();
+      crystalTimer = 1.6 + Math.random()*1.4;
+    }
+
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o = obstacles[i];
+      o.x += o.vx*dt; o.y += o.vy*dt; o.rot += o.spin*dt;
+      if(o.y<40 || o.y>H-40) o.vy *= -1;
+      if(o.x < -o.r-60) obstacles.splice(i,1);
+    }
+
+    const magnetLvl = profile.upgrades.magnet || 0;
+    const pickupRadius = ship.r + 11 + 6 + magnetLvl*10;
+    for(let i=crystals.length-1;i>=0;i--){
+      const c = crystals[i];
+      c.x += c.vx*dt; c.rot += dt*2.4;
+      if(Math.random() < dt*5){
+        spawnParticles(c.x, c.y+Math.sin(elapsed*3+c.phase)*6, "rgba(143,240,255,0.85)", 1, false, 12, 0.35);
+      }
+      if(c.x < -30) { crystals.splice(i,1); continue; }
+      const dist = Math.hypot(c.x-ship.x, (c.y+Math.sin(elapsed*3+c.phase)*6)-ship.y);
+      if(dist < pickupRadius){
+        collectedThisRun++;
+        refreshGemsHud();
+        spawnSparkle(c.x,c.y,"#8ff0ff");
+        spawnTextParticle(c.x, c.y-10, "+5", "#8ff0ff");
+        sndCollect();
+        crystals.splice(i,1);
+      }
+    }
+
+    const invulnerable = elapsed < invulnUntil;
+    if(!invulnerable){
+      for(const o of obstacles){
+        const dist = Math.hypot(o.x-ship.x, o.y-ship.y);
+        if(dist < (ship.r*0.82 + o.r*0.78)){
+          spawnExplosion(o.x,o.y, o.colorB, 12);
+          const idx = obstacles.indexOf(o);
+          if(idx>=0) obstacles.splice(idx,1);
+          handleCrash(o.x,o.y);
+          break;
+        }
+      }
+    }
+
+    if(gameMode==="campaign"){
+      const goal = stageGoalSeconds(campaignStage);
+      const pct = Math.min(100, Math.round((elapsed/goal)*100));
+      document.getElementById("hud-progress-fill").style.width = pct+"%";
+      const remain = Math.max(0, Math.ceil(goal-elapsed));
+      const label = Math.min(Math.floor(elapsed),goal)+"/"+goal+" c";
+      if(label !== displayedScore){
+        displayedScore = label;
+        document.getElementById("hud-score").textContent = label;
+      }
+      if(state==="playing" && elapsed >= goal) completeStage();
+    } else {
+      arcadeMultiplier = Math.min(3, 1 + Math.floor(elapsed/20)*0.1);
+      score = Math.floor(elapsed*6*arcadeMultiplier) + Math.round(collectedThisRun*5*arcadeMultiplier);
+      if(score !== displayedScore){
+        displayedScore = score;
+        document.getElementById("hud-score").textContent = score;
+      }
+      document.getElementById("hud-multiplier").textContent = "×"+arcadeMultiplier.toFixed(1);
+    }
+  }
+
+  /* ===========================================================
+     ОТРИСОВКА
+  =========================================================== */
+  function drawBackground(){
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"#050814"); g.addColorStop(1,"#0d1230");
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    nebulas.forEach(n=>{
+      const grad = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+      grad.addColorStop(0,"hsla("+n.hue+",70%,55%,0.10)");
+      grad.addColorStop(1,"hsla("+n.hue+",70%,55%,0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+    });
+    starsFar.forEach(s=>{
+      ctx.globalAlpha = 0.35 + Math.sin(s.tw)*0.25;
+      ctx.fillStyle = "#9ecbff";
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+    });
+    starsNear.forEach(s=>{
+      ctx.globalAlpha = 0.55 + Math.sin(s.tw)*0.3;
+      ctx.fillStyle = "#e8f6ff";
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+    });
+    comets.forEach(c=>{
+      const alpha = Math.min(1, c.life/c.maxLife) * (c.life<c.maxLife*0.25 ? c.life/(c.maxLife*0.25) : 1);
+      const tailX = c.x - c.vx*0.16, tailY = c.y - c.vy*0.16;
+      const grad = ctx.createLinearGradient(c.x,c.y,tailX,tailY);
+      grad.addColorStop(0, "rgba(255,255,255,"+alpha+")");
+      grad.addColorStop(1, "rgba(125,224,255,0)");
+      ctx.strokeStyle = grad; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(tailX,tailY); ctx.stroke();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(c.x,c.y,2.4,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawObstacle(o){
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    ctx.rotate(o.rot);
+    const points = 11;
+    ctx.beginPath();
+    for(let i=0;i<points;i++){
+      const ang = (i/points)*Math.PI*2;
+      const wobble = 0.72 + 0.28*Math.sin(i*2.1 + o.x*0.01);
+      const rr = o.r*wobble;
+      const px = Math.cos(ang)*rr, py = Math.sin(ang)*rr;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    const grad = ctx.createRadialGradient(-o.r*0.3,-o.r*0.3,o.r*0.1,0,0,o.r);
+    grad.addColorStop(0,o.colorA); grad.addColorStop(1,o.colorB);
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = "rgba(79,209,255,0.22)"; ctx.lineWidth=2; ctx.stroke();
+
+    o.craters.forEach(cr=>{
+      ctx.beginPath();
+      ctx.arc(cr.ox, cr.oy, cr.cr, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function drawCrystal(c){
+    const bobY = c.y + Math.sin(elapsed*3+c.phase)*6;
+    const scale = 1 + Math.sin(elapsed*4+c.phase)*0.08;
+    ctx.save();
+    ctx.translate(c.x, bobY);
+    ctx.rotate(c.rot);
+    ctx.scale(scale, scale);
+    ctx.shadowColor = "rgba(143,240,255,0.8)";
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.moveTo(0,-c.r); ctx.lineTo(c.r*0.72,0); ctx.lineTo(0,c.r); ctx.lineTo(-c.r*0.72,0);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0,-c.r,0,c.r);
+    grad.addColorStop(0,"#e8fdff"); grad.addColorStop(0.5,"#7de0ff"); grad.addColorStop(1,"#2f9fd8");
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth=1; ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawParticles(){
+    particles.forEach(p=>{
+      ctx.globalAlpha = Math.max(0, p.life/p.maxLife);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawShipAt(context, x, y, r, rot, skinId, thrustAlpha, timeSec){
+    const skin = getSkin(skinId);
+    let bodyFrom = skin.bodyFrom, bodyTo = skin.bodyTo;
+    if(skin.rainbow){
+      const hue = ((timeSec||0)*70) % 360;
+      bodyFrom = "hsl("+hue+",85%,60%)";
+      bodyTo = "hsl("+((hue+50)%360)+",85%,45%)";
+    }
+    context.save();
+    context.translate(x,y);
+    context.rotate(rot);
+    context.shadowColor = skin.glow;
+    context.shadowBlur = 12;
+
+    // выхлоп (мерцающий)
+    const flicker = 0.7 + Math.sin((timeSec||0)*22)*0.3;
+    context.globalAlpha = (thrustAlpha!==undefined?thrustAlpha:1);
+    context.beginPath();
+    context.moveTo(-r*1.0, -r*0.32);
+    context.lineTo(-r*(1.7+flicker*0.5), 0);
+    context.lineTo(-r*1.0, r*0.32);
+    context.closePath();
+    const flame = context.createLinearGradient(-r*2.2,0,-r*1.0,0);
+    flame.addColorStop(0, skin.flameTo);
+    flame.addColorStop(1, skin.flameFrom);
+    context.fillStyle = flame; context.fill();
+    context.globalAlpha = 1;
+
+    // задние крылья (тёмный оттенок)
+    context.beginPath();
+    context.moveTo(-r*0.35, -r*0.15);
+    context.lineTo(-r*0.95, -r*1.05);
+    context.lineTo(-r*0.15, -r*0.35);
+    context.closePath();
+    context.moveTo(-r*0.35, r*0.15);
+    context.lineTo(-r*0.95, r*1.05);
+    context.lineTo(-r*0.15, r*0.35);
+    context.closePath();
+    context.fillStyle = bodyFrom;
+    context.fill();
+
+    // корпус
+    context.beginPath();
+    context.moveTo(r*1.45, 0);
+    context.lineTo(r*0.35, -r*0.55);
+    context.lineTo(-r*0.85, -r*0.42);
+    context.lineTo(-r*0.55, 0);
+    context.lineTo(-r*0.85, r*0.42);
+    context.lineTo(r*0.35, r*0.55);
+    context.closePath();
+    const body = context.createLinearGradient(-r,0,r*1.45,0);
+    body.addColorStop(0, bodyFrom); body.addColorStop(1, bodyTo);
+    context.fillStyle = body; context.fill();
+    context.strokeStyle = skin.glow; context.lineWidth = 1.6; context.stroke();
+
+    // кабина
+    context.shadowBlur = 0;
+    context.beginPath();
+    context.ellipse(r*0.25, 0, r*0.34, r*0.24, 0, 0, Math.PI*2);
+    const winGrad = context.createRadialGradient(r*0.15,-r*0.08,1, r*0.25,0,r*0.34);
+    winGrad.addColorStop(0,"#ffffff");
+    winGrad.addColorStop(0.5, skin.win);
+    winGrad.addColorStop(1, "rgba(255,255,255,0.2)");
+    context.fillStyle = winGrad; context.fill();
+
+    context.restore();
+  }
+
+  function draw(){
+    drawBackground();
+    obstacles.forEach(drawObstacle);
+    crystals.forEach(drawCrystal);
+    drawParticles();
+    if(state!=="loading"){
+      const invulnerable = elapsed < invulnUntil;
+      ctx.save();
+      if(invulnerable) ctx.globalAlpha = 0.55 + Math.sin(elapsed*30)*0.25;
+      drawShipAt(ctx, ship.x, ship.y, ship.r, ship.rot, profile.equippedSkin, 1, elapsed);
+      ctx.restore();
+    }
+  }
+
+  /* ===========================================================
+     ГЛАВНЫЙ ЦИКЛ
+  =========================================================== */
+  let lastTime = 0;
+  function loop(ts){
+    if(!lastTime) lastTime = ts;
+    let dt = (ts-lastTime)/1000;
+    dt = Math.min(dt, 0.033);
+    lastTime = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  /* ===========================================================
+     YANDEX GAMES SDK
+  =========================================================== */
+  let ysdk = null;
+  let player = null;
+  let lbName = "topScores";
+
+  function trySubmitLeaderboard(value){
+    if(!ysdk) return;
+    try{
+      ysdk.getLeaderboards()
+        .then(lb=> lb.setLeaderboardScore(lbName, value))
+        .catch(()=>{});
+    }catch(e){}
+  }
+
+  function showInterstitial(){
+    if(!ysdk || !ysdk.adv){ return; }
+    const overlay = document.getElementById("ads-overlay");
+    try{
+      ysdk.adv.showFullscreenAdv({
+        callbacks:{
+          onOpen:()=>{ overlay.classList.remove("hidden"); },
+          onClose:()=>{ overlay.classList.add("hidden"); },
+          onError:()=>{ overlay.classList.add("hidden"); },
+          onOffline:()=>{ overlay.classList.add("hidden"); }
+        }
+      });
+    }catch(e){ overlay.classList.add("hidden"); }
+  }
+
+  function showRewardedForContinue(){
+    if(!ysdk || !ysdk.adv){ reviveAfterAd(); return; }
+    const overlay = document.getElementById("ads-overlay");
+    let rewarded = false;
+    try{
+      ysdk.adv.showRewardedVideo({
+        callbacks:{
+          onOpen:()=>{ overlay.classList.remove("hidden"); },
+          onRewarded:()=>{ rewarded = true; },
+          onClose:()=>{ overlay.classList.add("hidden"); if(rewarded) reviveAfterAd(); },
+          onError:()=>{ overlay.classList.add("hidden"); }
+        }
+      });
+    }catch(e){ overlay.classList.add("hidden"); }
+  }
+
+  function showRewardedForStars(){
+    const overlay = document.getElementById("ads-overlay");
+    const grantStars = ()=>{
+      const amount = 4 + Math.floor(Math.random()*4);
+      profile.stars += amount;
+      saveProfile();
+      sndCollect();
+      renderCasesTab();
+      queueToast("⭐ +"+amount);
+    };
+    if(!ysdk || !ysdk.adv){ grantStars(); return; }
+    let rewarded = false;
+    try{
+      ysdk.adv.showRewardedVideo({
+        callbacks:{
+          onOpen:()=>{ overlay.classList.remove("hidden"); },
+          onRewarded:()=>{ rewarded = true; },
+          onClose:()=>{ overlay.classList.add("hidden"); if(rewarded) grantStars(); },
+          onError:()=>{ overlay.classList.add("hidden"); }
+        }
+      });
+    }catch(e){ overlay.classList.add("hidden"); }
+  }
+
+  function detectLangFallback(){
+    const nav = (navigator.language||"ru").slice(0,2).toLowerCase();
+    lang = TEXTS[nav] ? nav : "ru";
+  }
+
+  function applyTexts(){
+    document.getElementById("loading-text").textContent = t("loading");
+    document.getElementById("menu-title").textContent = t("title");
+    document.getElementById("menu-subtitle").textContent = t("subtitle");
+    document.getElementById("start-btn").textContent = t("arcadeBtn");
+    document.getElementById("campaign-open-btn").textContent = t("campaignBtn");
+    document.getElementById("hangar-open-btn").innerHTML = "🛰 " + t("hangar");
+    document.getElementById("profile-open-btn").textContent = t("profileBtn");
+    document.getElementById("menu-hint").textContent = t("hint");
+    document.getElementById("back-text").textContent = t("back");
+    document.getElementById("tab-skins").textContent = t("skinsTab");
+    document.getElementById("tab-upgrades").textContent = t("upgradesTab");
+    document.getElementById("tab-achievements").textContent = t("achievementsTab");
+    document.getElementById("tab-cases").textContent = t("casesTab");
+    document.getElementById("levels-back-text").textContent = t("back");
+    document.getElementById("campaign-title").textContent = t("campaignTitle");
+    document.getElementById("campaign-hint").textContent = t("campaignHint");
+    document.getElementById("campaign-back-text").textContent = t("back");
+    document.getElementById("over-title").textContent = t("over");
+    document.getElementById("new-record-text").textContent = t("newRecord");
+    document.getElementById("label-score").textContent = t("score");
+    document.getElementById("label-best").textContent = t("best");
+    document.getElementById("label-crystals").textContent = t("crystalsLbl");
+    document.getElementById("label-xp").textContent = t("xpLbl");
+    document.getElementById("continue-btn").textContent = t("continueAd");
+    document.getElementById("restart-btn").textContent = t("restart");
+    document.getElementById("over-hangar-btn").innerHTML = "🛰 " + t("hangar");
+    document.title = t("title");
+  }
+
+  function initSdk(){
+    if(typeof YaGames === "undefined"){
+      detectLangFallback();
+      profile = loadLocalProfile();
+      finishBoot();
+      return;
+    }
+    YaGames.init().then(sdk=>{
+      ysdk = sdk; window.ysdk = sdk;
+      lang = (sdk.environment && sdk.environment.i18n && sdk.environment.i18n.lang) || "ru";
+      if(!TEXTS[lang]) lang = "ru";
+      try{ sdk.features.LoadingAPI.ready(); }catch(e){}
+
+      // Пауза/возобновление при сворачивании игры платформой (п. 1.19.4)
+      try{
+        sdk.on("game_api_pause", ()=>{ if(audioCtx){ try{ audioCtx.suspend(); }catch(e){} } });
+        sdk.on("game_api_resume", ()=>{ if(audioCtx){ try{ audioCtx.resume(); }catch(e){} } });
+      }catch(e){}
+
+      sdk.getPlayer({ scopes:false }).then(p=>{
+        player = p;
+        try{
+          player.getData(["profile"]).then(data=>{
+            profile = (data && data.profile) ? deepMerge(loadLocalProfile(), data.profile) : loadLocalProfile();
+            finishBoot();
+          }).catch(()=>{ profile = loadLocalProfile(); finishBoot(); });
+        }catch(e){ profile = loadLocalProfile(); finishBoot(); }
+      }).catch(()=>{ profile = loadLocalProfile(); finishBoot(); });
+    }).catch(()=>{
+      detectLangFallback();
+      profile = loadLocalProfile();
+      finishBoot();
+    });
+  }
+
+  function finishBoot(){
+    if(!profile.ownedSkins) profile.ownedSkins = [];
+    if(!profile.ownedSkins.includes("classic")) profile.ownedSkins.push("classic");
+    if(!profile.upgrades) profile.upgrades = { shield:0, agility:0, luck:0, magnet:0 };
+    if(!profile.stats) profile.stats = { runs:0, lifetimeCrystals:0, bestSurvival:0, bestGemsRun:0 };
+    if(profile.stats.bestSurvival===undefined) profile.stats.bestSurvival = 0;
+    if(profile.stats.bestGemsRun===undefined) profile.stats.bestGemsRun = 0;
+    if(!profile.achievements) profile.achievements = {};
+    if(profile.stars===undefined) profile.stars = 0;
+    if(!profile.cases) profile.cases = { standard:0 };
+    if(profile.cases.standard===undefined) profile.cases.standard = 0;
+    if(profile.stats.maxStageCleared===undefined) profile.stats.maxStageCleared = 0;
+    if(!profile.campaign) profile.campaign = { unlocked:1, completed:{} };
+    if(!profile.campaign.completed) profile.campaign.completed = {};
+    if(!profile.campaign.unlocked) profile.campaign.unlocked = 1;
+    if(profile.name===undefined) profile.name = "";
+    applyTexts();
+    if(!profile.name){ openNameEntry("menu"); }
+    else { goMenu(); }
+  }
+
+  /* ===========================================================
+     СТАРТ
+  =========================================================== */
+  resize();
+  resetShip();
+  applyTexts();
+  initSdk();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
