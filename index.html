@@ -87,6 +87,9 @@
   #hud-star-preview{margin-top:3px;font-size:16px;letter-spacing:3px;}
   #hud-star-preview .star-on{color:var(--gold);text-shadow:0 0 8px rgba(255,209,102,0.7);}
   #hud-star-preview .star-off{color:rgba(255,255,255,0.18);}
+  .mini-stars{font-size:13px;letter-spacing:1px;}
+  .mini-stars .star-on{color:var(--gold);text-shadow:0 0 6px rgba(255,209,102,0.6);}
+  .mini-stars .star-off{color:rgba(255,255,255,0.18);}
   #hud-sub{display:flex;gap:10px;margin-top:4px;}
   #hud-shield, #hud-gems{
     font-size:13px;font-weight:700;
@@ -379,6 +382,12 @@
     background:var(--panel2);border:1px solid rgba(79,209,255,0.25);border-radius:18px;
     padding:14px;display:flex;flex-direction:column;align-items:center;gap:7px;
   }
+  .card.rarity-common{border-color:rgba(154,176,201,0.5);color:#9ab0c9;}
+  .card.rarity-uncommon{border-color:rgba(94,235,255,0.55);color:#5eebff;}
+  .card.rarity-rare{border-color:rgba(180,120,255,0.6);color:#b478ff;}
+  .card.rarity-epic{border-color:rgba(255,143,214,0.65);color:#ff8fd6;}
+  .card.rarity-legendary{border-color:rgba(255,209,102,0.75);color:#ffd166;box-shadow:0 0 16px rgba(255,209,102,0.18);}
+  .card .rarity-tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:currentColor;}
   .card canvas{background:radial-gradient(circle at 50% 40%, rgba(79,209,255,0.12), transparent 70%);border-radius:12px;}
   .card .name{font-size:13.5px;font-weight:800;color:var(--text);}
   .card .req{font-size:11px;color:var(--muted);}
@@ -493,6 +502,7 @@
   @keyframes caseRevealSpin{0%{transform:scale(0.3) rotate(0deg);}100%{transform:scale(1) rotate(360deg);}}
   .case-reveal-title{font-size:13px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
   .case-reveal-value{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--gold);text-shadow:0 0 16px rgba(255,209,102,0.6);}
+  #case-reveal-ship{background:radial-gradient(circle, rgba(255,209,102,0.15), transparent 70%);border-radius:16px;animation:starPop .5s ease both;}
 
   /* ---- Барабан открытия кейса (CS:GO-style) ---- */
   .reel-viewport{
@@ -596,7 +606,7 @@
       <button class="btn secondary small" id="leaderboard-back-btn">← <span id="leaderboard-back-text">Назад</span></button>
     </div>
     <h2 class="panel-title" id="leaderboard-title">Лидерборд</h2>
-    <div class="stats-list" id="leaderboard-list"></div>
+    <div class="levels-list" id="leaderboard-list"></div>
   </div>
 
   <div id="viewed-profile-screen" class="screen hidden">
@@ -754,6 +764,7 @@
         <div class="reel-marker-tri bottom"></div>
       </div>
       <div class="case-reveal-title" id="case-reveal-title">Открываем…</div>
+      <canvas id="case-reveal-ship" class="hidden" width="96" height="96"></canvas>
       <div class="case-reveal-value hidden" id="case-reveal-value">+100 💎</div>
       <button class="btn hidden" id="case-reveal-claim">Забрать</button>
     </div>
@@ -871,35 +882,35 @@
      СКИНЫ
   =========================================================== */
   const SKINS = [
-    { id:"classic", name:{ru:"Стандарт",en:"Standard"}, reqLevel:1, price:0,
+    { id:"classic", name:{ru:"Стандарт",en:"Standard"}, reqLevel:1, price:0, rarity:"common",
       bodyFrom:"#3a6fd8", bodyTo:"#4fd1ff", flameFrom:"rgba(255,200,80,0.95)", flameTo:"rgba(255,180,60,0)", win:"#e8fbff", glow:"rgba(255,255,255,0.6)", trailColor:"rgba(94,235,255,0.85)" },
-    { id:"comet", name:{ru:"Комета",en:"Comet"}, reqLevel:2, price:150,
+    { id:"comet", name:{ru:"Комета",en:"Comet"}, reqLevel:2, price:260, rarity:"common",
       bodyFrom:"#d84f2e", bodyTo:"#ffb347", flameFrom:"rgba(255,255,180,0.95)", flameTo:"rgba(255,140,40,0)", win:"#fff3d6", glow:"rgba(255,200,140,0.7)", trailColor:"rgba(255,180,90,0.85)" },
-    { id:"arctic", name:{ru:"Арктика",en:"Arctic"}, reqLevel:3, price:220,
+    { id:"arctic", name:{ru:"Арктика",en:"Arctic"}, reqLevel:3, price:380, rarity:"uncommon",
       bodyFrom:"#4a7fae", bodyTo:"#dff6ff", flameFrom:"rgba(200,240,255,0.95)", flameTo:"rgba(120,200,255,0)", win:"#ffffff", glow:"rgba(200,240,255,0.8)", trailColor:"rgba(210,245,255,0.9)" },
-    { id:"toxic", name:{ru:"Токсин",en:"Toxic"}, reqLevel:4, price:280,
+    { id:"toxic", name:{ru:"Токсин",en:"Toxic"}, reqLevel:4, price:480, rarity:"uncommon",
       bodyFrom:"#1e5c1e", bodyTo:"#9dff4f", flameFrom:"rgba(220,255,150,0.95)", flameTo:"rgba(140,255,60,0)", win:"#e8ffd0", glow:"rgba(160,255,90,0.7)", trailColor:"rgba(170,255,90,0.9)" },
-    { id:"stealth", name:{ru:"Стелс",en:"Stealth"}, reqLevel:5, price:350,
+    { id:"stealth", name:{ru:"Стелс",en:"Stealth"}, reqLevel:5, price:600, rarity:"uncommon",
       bodyFrom:"#1a1f33", bodyTo:"#3d2b56", flameFrom:"rgba(140,255,180,0.9)", flameTo:"rgba(60,255,140,0)", win:"#8effc0", glow:"rgba(140,255,180,0.6)", trailColor:"rgba(140,255,180,0.8)" },
-    { id:"crimson", name:{ru:"Багрянец",en:"Crimson"}, reqLevel:7, price:450,
+    { id:"crimson", name:{ru:"Багрянец",en:"Crimson"}, reqLevel:7, price:780, rarity:"rare",
       bodyFrom:"#3a0d10", bodyTo:"#c81f36", flameFrom:"rgba(255,150,120,0.95)", flameTo:"rgba(255,60,40,0)", win:"#ffd6d6", glow:"rgba(255,90,90,0.75)", trailColor:"rgba(255,110,90,0.9)" },
-    { id:"plasma", name:{ru:"Плазма",en:"Plasma"}, reqLevel:8, price:550,
+    { id:"plasma", name:{ru:"Плазма",en:"Plasma"}, reqLevel:8, price:950, rarity:"rare",
       bodyFrom:"#a23bd8", bodyTo:"#ff5cc8", flameFrom:"rgba(255,180,255,0.95)", flameTo:"rgba(200,80,255,0)", win:"#ffe0fb", glow:"rgba(255,140,255,0.7)", trailColor:"rgba(255,140,255,0.9)" },
-    { id:"nebula", name:{ru:"Туманность",en:"Nebula"}, reqLevel:10, price:700,
+    { id:"nebula", name:{ru:"Туманность",en:"Nebula"}, reqLevel:10, price:1200, rarity:"rare",
       bodyFrom:"#2b1a5e", bodyTo:"#7de0d3", flameFrom:"rgba(180,255,240,0.95)", flameTo:"rgba(90,200,255,0)", win:"#e0fff8", glow:"rgba(140,220,255,0.75)", trailColor:"rgba(150,230,255,0.9)" },
-    { id:"gold", name:{ru:"Золото",en:"Gold"}, reqLevel:12, price:1000,
+    { id:"gold", name:{ru:"Золото",en:"Gold"}, reqLevel:12, price:1700, rarity:"epic",
       bodyFrom:"#8a6a1f", bodyTo:"#ffd166", flameFrom:"rgba(255,240,180,0.95)", flameTo:"rgba(255,200,80,0)", win:"#fff8e0", glow:"rgba(255,225,150,0.8)", trailColor:"rgba(255,220,140,0.9)" },
-    { id:"legend", name:{ru:"Легенда",en:"Legend"}, reqLevel:16, price:1800, rainbow:true,
+    { id:"legend", name:{ru:"Легенда",en:"Legend"}, reqLevel:16, price:3000, rarity:"legendary", rainbow:true,
       flameFrom:"rgba(255,255,255,0.95)", flameTo:"rgba(255,255,255,0)", win:"#ffffff", glow:"rgba(255,255,255,0.85)", trailRainbow:true },
-    { id:"phoenix", name:{ru:"Феникс",en:"Phoenix"}, reqLevel:20, price:2200,
+    { id:"phoenix", name:{ru:"Феникс",en:"Phoenix"}, reqLevel:20, price:3600, rarity:"epic",
       bodyFrom:"#7a1a00", bodyTo:"#ff7a1a", flameFrom:"rgba(255,220,140,0.95)", flameTo:"rgba(255,100,20,0)", win:"#ffe8c0", glow:"rgba(255,140,50,0.85)", trailColor:"rgba(255,150,40,0.95)", trailEmbers:true },
-    { id:"crystalline", name:{ru:"Кристалл",en:"Crystal"}, reqLevel:24, price:2600,
+    { id:"crystalline", name:{ru:"Кристалл",en:"Crystal"}, reqLevel:24, price:4200, rarity:"epic",
       bodyFrom:"#5fb8e0", bodyTo:"#eaffff", flameFrom:"rgba(230,255,255,0.95)", flameTo:"rgba(150,230,255,0)", win:"#ffffff", glow:"rgba(200,250,255,0.9)", trailColor:"rgba(220,255,255,0.95)", trailSparkle:true },
-    { id:"void", name:{ru:"Тьма",en:"Void"}, reqLevel:30, price:3200,
+    { id:"void", name:{ru:"Тьма",en:"Void"}, reqLevel:30, price:5000, rarity:"legendary",
       bodyFrom:"#060008", bodyTo:"#2a0f4a", flameFrom:"rgba(180,90,255,0.9)", flameTo:"rgba(90,20,180,0)", win:"#d6a6ff", glow:"rgba(150,70,255,0.85)", trailColor:"rgba(160,80,255,0.9)" },
-    { id:"quantum", name:{ru:"Квантум",en:"Quantum"}, reqLevel:40, price:4000, rainbow:true, hueShift:170,
+    { id:"quantum", name:{ru:"Квантум",en:"Quantum"}, reqLevel:40, price:6200, rarity:"legendary", rainbow:true, hueShift:170,
       flameFrom:"rgba(180,255,255,0.95)", flameTo:"rgba(60,200,255,0)", win:"#eafffe", glow:"rgba(120,255,235,0.9)", trailRainbow:true },
-    { id:"immortal", name:{ru:"Бессмертный",en:"Immortal"}, reqLevel:60, price:6000,
+    { id:"immortal", name:{ru:"Бессмертный",en:"Immortal"}, reqLevel:60, price:9000, rarity:"legendary",
       bodyFrom:"#fff4d0", bodyTo:"#ffffff", flameFrom:"rgba(255,255,255,0.98)", flameTo:"rgba(255,230,150,0)", win:"#ffffff", glow:"rgba(255,245,210,0.95)", trailColor:"rgba(255,250,220,0.95)", trailSparkle:true }
   ];
   function getSkin(id){ return SKINS.find(s=>s.id===id) || SKINS[0]; }
@@ -908,18 +919,24 @@
      УЛУЧШЕНИЯ
   =========================================================== */
   const UPGRADES = [
-    { id:"shield", maxLevel:3, costs:[150,350,700],
+    { id:"shield", maxLevel:3, costs:[260,600,1150],
       name:{ru:"Щит", en:"Shield"},
       effect:{ ru:(l)=> l>0 ? (l+" заряд(ов) защиты за полёт") : "Спасает от одного столкновения", en:(l)=> l>0 ? (l+" shield charge(s) per flight") : "Saves you from one crash" } },
-    { id:"agility", maxLevel:3, costs:[180,380,750],
+    { id:"agility", maxLevel:3, costs:[300,650,1300],
       name:{ru:"Манёвренность", en:"Agility"},
       effect:{ ru:(l)=> "+"+(l*20)+"% отклика управления", en:(l)=> "+"+(l*20)+"% control response" } },
-    { id:"luck", maxLevel:3, costs:[150,320,650],
+    { id:"luck", maxLevel:3, costs:[260,560,1100],
       name:{ru:"Удача старателя", en:"Prospector's Luck"},
       effect:{ ru:(l)=> "+"+(l*15)+"% кристаллов за полёт", en:(l)=> "+"+(l*15)+"% crystals per flight" } },
-    { id:"magnet", maxLevel:3, costs:[160,340,680],
+    { id:"magnet", maxLevel:3, costs:[280,590,1180],
       name:{ru:"Магнит", en:"Magnet"},
-      effect:{ ru:(l)=> "+"+(l*10)+"px радиус сбора кристаллов", en:(l)=> "+"+(l*10)+"px crystal pickup radius" } }
+      effect:{ ru:(l)=> "+"+(l*10)+"px радиус сбора кристаллов", en:(l)=> "+"+(l*10)+"px crystal pickup radius" } },
+    { id:"armor", maxLevel:3, costs:[320,700,1400],
+      name:{ru:"Броня", en:"Armor"},
+      effect:{ ru:(l)=> "-"+(l*6)+"% хитбокс в Аркаде", en:(l)=> "-"+(l*6)+"% hitbox size in Arcade" } },
+    { id:"reactor", maxLevel:3, costs:[320,700,1400],
+      name:{ru:"Реактор", en:"Reactor"},
+      effect:{ ru:(l)=> "+"+(l*8)+"% радиус тарана в Уровнях", en:(l)=> "+"+(l*8)+"% ram radius in Levels" } }
   ];
 
   /* ===========================================================
@@ -1014,7 +1031,7 @@
     name:"", avatar:AVATARS[0], bio:"", uid:"",
     bestScore:0, crystals:0, stars:0, xp:0, level:1,
     ownedSkins:["classic"], equippedSkin:"classic",
-    upgrades:{ shield:0, agility:0, luck:0, magnet:0 },
+    upgrades:{ shield:0, agility:0, luck:0, magnet:0, armor:0, reactor:0 },
     stats:{ runs:0, lifetimeCrystals:0, bestSurvival:0, bestGemsRun:0, maxStageCleared:0, casesOpened:0 },
     achievements:{},
     cases:{ standard:0 },
@@ -1023,12 +1040,14 @@
 
   // Сложность и цель конкретного этапа режима "Уровни"
   // Теперь цель — не "продержаться", а разбить как можно больше астероидов за отведённое время.
-  function stageGoalSeconds(stage){ return Math.min(45, 16 + Math.floor(stage/4)); }
+  function stageGoalSeconds(stage){ return Math.min(60, 16 + Math.floor(stage/3)); }
   function stageStarThresholds(stage){
     const goal = stageGoalSeconds(stage);
-    const t1 = Math.max(3, Math.round(goal/4.5));
-    const t2 = Math.round(t1*1.7);
-    const t3 = Math.round(t1*2.5);
+    const eff = effectiveStageDifficulty(stage);
+    const base = Math.max(3, Math.round(goal/4.5) + Math.round(eff*0.45));
+    const t1 = base;
+    const t2 = Math.round(t1*1.6);
+    const t3 = Math.round(t1*2.3);
     return [t1,t2,t3];
   }
   function starsForCount(stage, count){
@@ -1046,8 +1065,8 @@
   // "Сила" игрока (уровень + суммарная прокачка) снижает ощущаемую сложность этапа
   function playerPowerBonus(){
     const u = profile.upgrades || {};
-    const upgSum = (u.shield||0)+(u.agility||0)+(u.luck||0)+(u.magnet||0);
-    return profile.level*0.5 + upgSum;
+    const upgSum = (u.shield||0)+(u.agility||0)+(u.luck||0)+(u.magnet||0)+(u.armor||0)+(u.reactor||0);
+    return profile.level*0.5 + upgSum*0.7;
   }
   // Сложность чередуется (лёгкий → средний → очень лёгкий → ...), но в среднем растёт с этапом —
   // так серия остаётся разнообразной, а не монотонной лестницей.
@@ -1157,14 +1176,20 @@
     profile.stats.bestGemsRun = Math.max(profile.stats.bestGemsRun, gemsThisRun);
   }
 
+  // Понижающий коэффициент выплат за ачивки — так экономика не разгоняется слишком быстро
+  const ACH_REWARD_SCALE = 0.5;
+  function achReward(a){ return Math.max(10, Math.round(a.reward*ACH_REWARD_SCALE)); }
+  function achStars(a){ return a.starsReward ? Math.max(1, Math.round(a.starsReward*ACH_REWARD_SCALE)) : 0; }
+
   function checkAchievements(){
     const newly = [];
     ACHIEVEMENTS.forEach(a=>{
       if(!profile.achievements[a.id] && a.check(profile)){
         profile.achievements[a.id] = true;
-        profile.crystals += a.reward;
-        profile.stats.lifetimeCrystals += a.reward;
-        if(a.starsReward) profile.stars += a.starsReward;
+        const cr = achReward(a), st = achStars(a);
+        profile.crystals += cr;
+        profile.stats.lifetimeCrystals += cr;
+        if(st) profile.stars += st;
         newly.push(a);
       }
     });
@@ -1219,7 +1244,7 @@
     const newlyUnlocked = checkAchievements();
     showCaseReveal(reward);
     renderCasesTab();
-    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
+    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+achReward(a)+" 💎"+(achStars(a)?(" +"+achStars(a)+" ⭐"):"")));
     if(newlyUnlocked.length){ submitToLeaderboard(); sndAchievement(); }
   }
 
@@ -1753,7 +1778,8 @@
     document.getElementById("hud-best").textContent = t("bestPrefix") + profile.bestScore;
     document.getElementById("hud-best").classList.remove("hidden");
     document.getElementById("hud-multiplier").classList.remove("hidden");
-    document.getElementById("hud-multiplier").textContent = "×1.0";
+    arcadeMultiplier = 1 + profile.level*0.1;
+    document.getElementById("hud-multiplier").textContent = "×"+arcadeMultiplier.toFixed(1);
     document.getElementById("hud-progress-bg").classList.add("hidden");
     document.getElementById("hud-stage-diff").classList.add("hidden");
     document.getElementById("hud-destroy-count").classList.add("hidden");
@@ -1826,7 +1852,7 @@
       if(lu.gotCase) queueToast("🎁 "+t("level")+" "+lu.level+"! +"+lu.crystals+" 💎 + "+t("caseLabel"));
       else queueToast("⬆️ "+t("level")+" "+lu.level+"! +"+lu.crystals+" 💎");
     });
-    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
+    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+achReward(a)+" 💎"+(achStars(a)?(" +"+achStars(a)+" ⭐"):"")));
     if(newlyUnlocked.length) sndAchievement();
     trySubmitLeaderboard(profile.bestScore);
 
@@ -1947,7 +1973,7 @@
     saveProfile();
 
     showStageResult(cleared, crystalsReward, currencyStarsReward, ratingStars, campaignDestroyed);
-    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
+    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+achReward(a)+" 💎"+(achStars(a)?(" +"+achStars(a)+" ⭐"):"")));
     if(newlyUnlocked.length) setTimeout(sndAchievement, 350);
   }
 
@@ -2214,7 +2240,7 @@
       const equipped = profile.equippedSkin === skin.id;
       const lockedByLevel = profile.level < skin.reqLevel;
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card rarity-"+(skin.rarity||"common");
 
       const cnv = document.createElement("canvas");
       cnv.width = 76; cnv.height = 76;
@@ -2223,6 +2249,11 @@
       const nameEl = document.createElement("div");
       nameEl.className = "name"; nameEl.textContent = skin.name[lang];
       card.appendChild(nameEl);
+
+      const rarityTag = document.createElement("div");
+      rarityTag.className = "rarity-tag";
+      rarityTag.textContent = t(RARITY_KEY[skin.rarity||"common"]);
+      card.appendChild(rarityTag);
 
       const btn = document.createElement("button");
       btn.className = "btn small" + (owned && !equipped ? "" : " secondary");
@@ -2312,7 +2343,7 @@
     const tagEl = document.createElement("div"); tagEl.className="rarity-tag"; tagEl.textContent=t(RARITY_KEY[a.rarity||"common"]); card.appendChild(tagEl);
     if(!unlocked && a.progress){ const p=document.createElement("div"); p.className="progress"; p.textContent=a.progress(profile); card.appendChild(p); }
     const rewardEl = document.createElement("div"); rewardEl.className="reward";
-    rewardEl.textContent=(unlocked?"✓ ":"+")+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"");
+    rewardEl.textContent=(unlocked?"✓ ":"+")+achReward(a)+" 💎"+(achStars(a)?(" +"+achStars(a)+" ⭐"):"");
     card.appendChild(rewardEl);
     return card;
   }
@@ -2539,10 +2570,11 @@
 
     if(gameMode==="campaign"){
       // Кампания: врезаться в астероид = разбить его (очки в счётчик), а не потерпеть крушение
+      const reactorBonus = 1 + (profile.upgrades.reactor||0)*0.08;
       for(let i=obstacles.length-1;i>=0;i--){
         const o = obstacles[i];
         const dist = Math.hypot(o.x-ship.x, o.y-ship.y);
-        if(dist < (ship.r*0.88 + o.r*0.78)){
+        if(dist < (ship.r*0.88*reactorBonus + o.r*0.78)){
           spawnExplosion(o.x,o.y, o.colorB, 22);
           spawnTextParticle(o.x, o.y-10, "+1", "#ffd166");
           triggerShake(6, 0.16);
@@ -2554,10 +2586,11 @@
       }
     } else {
       const invulnerable = elapsed < invulnUntil;
+      const armorBonus = 1 - (profile.upgrades.armor||0)*0.06;
       if(!invulnerable){
         for(const o of obstacles){
           const dist = Math.hypot(o.x-ship.x, o.y-ship.y);
-          if(dist < (ship.r*0.82 + o.r*0.78)){
+          if(dist < (ship.r*0.82*armorBonus + o.r*0.78)){
             spawnExplosion(o.x,o.y, o.colorB, 12);
             const idx = obstacles.indexOf(o);
             if(idx>=0) obstacles.splice(idx,1);
@@ -2580,13 +2613,12 @@
       refreshDestroyHud();
       if(state==="playing" && elapsed >= goal) completeStage();
     } else {
-      arcadeMultiplier = Math.min(3, 1 + Math.floor(elapsed/20)*0.1);
+      // Множитель — постоянный, растёт с рангом игрока (1.0 + 0.1 за каждый уровень ранга), НЕ со временем забега
       score = Math.floor(elapsed*6*arcadeMultiplier) + Math.round(collectedThisRun*5*arcadeMultiplier);
       if(score !== displayedScore){
         displayedScore = score;
         document.getElementById("hud-score").textContent = score;
       }
-      document.getElementById("hud-multiplier").textContent = "×"+arcadeMultiplier.toFixed(1);
     }
   }
 
@@ -2965,7 +2997,9 @@
   function finishBoot(){
     if(!profile.ownedSkins) profile.ownedSkins = [];
     if(!profile.ownedSkins.includes("classic")) profile.ownedSkins.push("classic");
-    if(!profile.upgrades) profile.upgrades = { shield:0, agility:0, luck:0, magnet:0 };
+    if(!profile.upgrades) profile.upgrades = { shield:0, agility:0, luck:0, magnet:0, armor:0, reactor:0 };
+    if(profile.upgrades.armor===undefined) profile.upgrades.armor = 0;
+    if(profile.upgrades.reactor===undefined) profile.upgrades.reactor = 0;
     if(!profile.stats) profile.stats = { runs:0, lifetimeCrystals:0, bestSurvival:0, bestGemsRun:0 };
     if(profile.stats.bestSurvival===undefined) profile.stats.bestSurvival = 0;
     if(profile.stats.bestGemsRun===undefined) profile.stats.bestGemsRun = 0;
