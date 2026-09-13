@@ -348,11 +348,17 @@
     padding:14px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;
     position:relative;
   }
-  .ach-card.unlocked{border-color:rgba(255,209,102,0.6);box-shadow:0 0 14px rgba(255,209,102,0.18);}
-  .ach-card.locked{opacity:0.55;}
+  .ach-card.unlocked{box-shadow:0 0 16px currentColor;}
+  .ach-card.locked{opacity:0.5;}
+  .ach-card.rarity-common{border-color:rgba(154,176,201,0.5);color:#9ab0c9;}
+  .ach-card.rarity-uncommon{border-color:rgba(94,235,255,0.55);color:#5eebff;}
+  .ach-card.rarity-rare{border-color:rgba(180,120,255,0.6);color:#b478ff;}
+  .ach-card.rarity-epic{border-color:rgba(255,143,214,0.65);color:#ff8fd6;}
+  .ach-card.rarity-legendary{border-color:rgba(255,209,102,0.75);color:#ffd166;}
   .ach-icon{font-size:29px;line-height:1;}
   .ach-card .name{font-size:12.5px;font-weight:800;color:var(--text);}
   .ach-card .desc{font-size:10.5px;color:var(--muted);}
+  .ach-card .rarity-tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:currentColor;}
   .ach-card .reward{font-size:11px;color:var(--gold);font-weight:700;}
   .ach-card .progress{font-size:10px;color:var(--muted);}
   .ach-check{position:absolute;top:8px;right:10px;font-size:14px;}
@@ -522,7 +528,12 @@
       <button class="btn secondary small" id="save-bio-btn">Сохранить</button>
     </div>
 
+    <div class="tabs">
+      <button class="tab-btn active" id="ptab-stats" data-ptab="stats">Статистика</button>
+      <button class="tab-btn" id="ptab-ach" data-ptab="ach">Ачивки</button>
+    </div>
     <div class="stats-list" id="stats-list"></div>
+    <div class="grid hidden" id="profile-achievements-grid"></div>
   </div>
 
   <div id="leaderboard-screen" class="screen hidden">
@@ -541,7 +552,12 @@
     <div class="avatar-big" id="viewed-avatar">🧑‍🚀</div>
     <div class="profile-name" id="viewed-name">Пилот</div>
     <div class="viewed-bio" id="viewed-bio"></div>
+    <div class="tabs">
+      <button class="tab-btn active" id="vtab-stats" data-vtab="stats">Статистика</button>
+      <button class="tab-btn" id="vtab-ach" data-vtab="ach">Ачивки</button>
+    </div>
     <div class="stats-list" id="viewed-stats-list"></div>
+    <div class="grid hidden" id="viewed-achievements-grid"></div>
   </div>
 
   <div id="menu-screen" class="screen hidden">
@@ -709,12 +725,13 @@
       over:"Миссия окончена", newRecord:"Новый рекорд!", levelUp:"🎉 Новый уровень!",
       score:"Очки", best:"Рекорд", crystalsLbl:"Кристаллы", xpLbl:"Опыт", starsLbl:"Звёзды",
       continueAd:"Продолжить (реклама)", restart:"Заново",
-      hangar:"Ангар", back:"Назад", skinsTab:"Скины", upgradesTab:"Улучшения", achievementsTab:"Ачивки", casesTab:"Кейсы",
+      hangar:"Ангар", back:"Назад", skinsTab:"Скины", upgradesTab:"Улучшения", achievementsTab:"Ачивки", casesTab:"Кейсы", statsTab:"Статистика",
       buy:"Купить", equip:"Экипировать", equipped:"Экипировано", owned:"Куплено",
       lockedLevel:(l)=>"Ур. "+l, maxLvl:"МАКС", level:"Ур.", bestPrefix:"🏆 Рекорд: ",
       levelsTitle:"Путь пилота", casesOwned:"У вас кейсов:", openCase:"Открыть кейс", noCases:"Нет кейсов",
       earnStars:"📺 +⭐ за рекламу", shopTitle:"Магазин кейсов", caseGot:"Вы получили", claim:"Забрать",
       lvCurrent:"Текущий", lvDone:"Пройден", lvLocked:"Закрыт", caseLabel:"Кейс",
+      rarityCommon:"Обычное", rarityUncommon:"Необычное", rarityRare:"Редкое", rarityEpic:"Эпическое", rarityLegendary:"Легендарное",
       campaignTitle:"Уровни", campaignHint:"Проходи этапы на время — сложность растёт с каждым уровнем.",
       stageLabel:"Этап", stageCleared:"Этап пройден!", stageFailed:"Этап не пройден",
       stageNext:"Следующий этап", stageRetry:"Повторить", stageBack:"🪐 К уровням", stageGoal:"Цель", menuBtn:"Меню",
@@ -739,12 +756,13 @@
       over:"Mission Over", newRecord:"New record!", levelUp:"🎉 Level up!",
       score:"Score", best:"Best", crystalsLbl:"Crystals", xpLbl:"XP", starsLbl:"Stars",
       continueAd:"Continue (ad)", restart:"Restart",
-      hangar:"Hangar", back:"Back", skinsTab:"Skins", upgradesTab:"Upgrades", achievementsTab:"Achievements", casesTab:"Cases",
+      hangar:"Hangar", back:"Back", skinsTab:"Skins", upgradesTab:"Upgrades", achievementsTab:"Achievements", casesTab:"Cases", statsTab:"Stats",
       buy:"Buy", equip:"Equip", equipped:"Equipped", owned:"Owned",
       lockedLevel:(l)=>"Lvl "+l, maxLvl:"MAX", level:"Lvl", bestPrefix:"🏆 Best: ",
       levelsTitle:"Pilot's Path", casesOwned:"Cases owned:", openCase:"Open case", noCases:"No cases",
       earnStars:"📺 +⭐ watch ad", shopTitle:"Case shop", caseGot:"You got", claim:"Claim",
       lvCurrent:"Current", lvDone:"Done", lvLocked:"Locked", caseLabel:"Case",
+      rarityCommon:"Common", rarityUncommon:"Uncommon", rarityRare:"Rare", rarityEpic:"Epic", rarityLegendary:"Legendary",
       campaignTitle:"Levels", campaignHint:"Clear timed stages — difficulty rises each level.",
       stageLabel:"Stage", stageCleared:"Stage cleared!", stageFailed:"Stage failed",
       stageNext:"Next stage", stageRetry:"Retry", stageBack:"🪐 To levels", stageGoal:"Goal", menuBtn:"Menu",
@@ -795,25 +813,35 @@
   =========================================================== */
   const SKINS = [
     { id:"classic", name:{ru:"Стандарт",en:"Standard"}, reqLevel:1, price:0,
-      bodyFrom:"#3a6fd8", bodyTo:"#4fd1ff", flameFrom:"rgba(255,200,80,0.95)", flameTo:"rgba(255,180,60,0)", win:"#e8fbff", glow:"rgba(255,255,255,0.6)" },
+      bodyFrom:"#3a6fd8", bodyTo:"#4fd1ff", flameFrom:"rgba(255,200,80,0.95)", flameTo:"rgba(255,180,60,0)", win:"#e8fbff", glow:"rgba(255,255,255,0.6)", trailColor:"rgba(94,235,255,0.85)" },
     { id:"comet", name:{ru:"Комета",en:"Comet"}, reqLevel:2, price:150,
-      bodyFrom:"#d84f2e", bodyTo:"#ffb347", flameFrom:"rgba(255,255,180,0.95)", flameTo:"rgba(255,140,40,0)", win:"#fff3d6", glow:"rgba(255,200,140,0.7)" },
+      bodyFrom:"#d84f2e", bodyTo:"#ffb347", flameFrom:"rgba(255,255,180,0.95)", flameTo:"rgba(255,140,40,0)", win:"#fff3d6", glow:"rgba(255,200,140,0.7)", trailColor:"rgba(255,180,90,0.85)" },
     { id:"arctic", name:{ru:"Арктика",en:"Arctic"}, reqLevel:3, price:220,
-      bodyFrom:"#4a7fae", bodyTo:"#dff6ff", flameFrom:"rgba(200,240,255,0.95)", flameTo:"rgba(120,200,255,0)", win:"#ffffff", glow:"rgba(200,240,255,0.8)" },
+      bodyFrom:"#4a7fae", bodyTo:"#dff6ff", flameFrom:"rgba(200,240,255,0.95)", flameTo:"rgba(120,200,255,0)", win:"#ffffff", glow:"rgba(200,240,255,0.8)", trailColor:"rgba(210,245,255,0.9)" },
     { id:"toxic", name:{ru:"Токсин",en:"Toxic"}, reqLevel:4, price:280,
-      bodyFrom:"#1e5c1e", bodyTo:"#9dff4f", flameFrom:"rgba(220,255,150,0.95)", flameTo:"rgba(140,255,60,0)", win:"#e8ffd0", glow:"rgba(160,255,90,0.7)" },
+      bodyFrom:"#1e5c1e", bodyTo:"#9dff4f", flameFrom:"rgba(220,255,150,0.95)", flameTo:"rgba(140,255,60,0)", win:"#e8ffd0", glow:"rgba(160,255,90,0.7)", trailColor:"rgba(170,255,90,0.9)" },
     { id:"stealth", name:{ru:"Стелс",en:"Stealth"}, reqLevel:5, price:350,
-      bodyFrom:"#1a1f33", bodyTo:"#3d2b56", flameFrom:"rgba(140,255,180,0.9)", flameTo:"rgba(60,255,140,0)", win:"#8effc0", glow:"rgba(140,255,180,0.6)" },
+      bodyFrom:"#1a1f33", bodyTo:"#3d2b56", flameFrom:"rgba(140,255,180,0.9)", flameTo:"rgba(60,255,140,0)", win:"#8effc0", glow:"rgba(140,255,180,0.6)", trailColor:"rgba(140,255,180,0.8)" },
     { id:"crimson", name:{ru:"Багрянец",en:"Crimson"}, reqLevel:7, price:450,
-      bodyFrom:"#3a0d10", bodyTo:"#c81f36", flameFrom:"rgba(255,150,120,0.95)", flameTo:"rgba(255,60,40,0)", win:"#ffd6d6", glow:"rgba(255,90,90,0.75)" },
+      bodyFrom:"#3a0d10", bodyTo:"#c81f36", flameFrom:"rgba(255,150,120,0.95)", flameTo:"rgba(255,60,40,0)", win:"#ffd6d6", glow:"rgba(255,90,90,0.75)", trailColor:"rgba(255,110,90,0.9)" },
     { id:"plasma", name:{ru:"Плазма",en:"Plasma"}, reqLevel:8, price:550,
-      bodyFrom:"#a23bd8", bodyTo:"#ff5cc8", flameFrom:"rgba(255,180,255,0.95)", flameTo:"rgba(200,80,255,0)", win:"#ffe0fb", glow:"rgba(255,140,255,0.7)" },
+      bodyFrom:"#a23bd8", bodyTo:"#ff5cc8", flameFrom:"rgba(255,180,255,0.95)", flameTo:"rgba(200,80,255,0)", win:"#ffe0fb", glow:"rgba(255,140,255,0.7)", trailColor:"rgba(255,140,255,0.9)" },
     { id:"nebula", name:{ru:"Туманность",en:"Nebula"}, reqLevel:10, price:700,
-      bodyFrom:"#2b1a5e", bodyTo:"#7de0d3", flameFrom:"rgba(180,255,240,0.95)", flameTo:"rgba(90,200,255,0)", win:"#e0fff8", glow:"rgba(140,220,255,0.75)" },
+      bodyFrom:"#2b1a5e", bodyTo:"#7de0d3", flameFrom:"rgba(180,255,240,0.95)", flameTo:"rgba(90,200,255,0)", win:"#e0fff8", glow:"rgba(140,220,255,0.75)", trailColor:"rgba(150,230,255,0.9)" },
     { id:"gold", name:{ru:"Золото",en:"Gold"}, reqLevel:12, price:1000,
-      bodyFrom:"#8a6a1f", bodyTo:"#ffd166", flameFrom:"rgba(255,240,180,0.95)", flameTo:"rgba(255,200,80,0)", win:"#fff8e0", glow:"rgba(255,225,150,0.8)" },
+      bodyFrom:"#8a6a1f", bodyTo:"#ffd166", flameFrom:"rgba(255,240,180,0.95)", flameTo:"rgba(255,200,80,0)", win:"#fff8e0", glow:"rgba(255,225,150,0.8)", trailColor:"rgba(255,220,140,0.9)" },
     { id:"legend", name:{ru:"Легенда",en:"Legend"}, reqLevel:16, price:1800, rainbow:true,
-      flameFrom:"rgba(255,255,255,0.95)", flameTo:"rgba(255,255,255,0)", win:"#ffffff", glow:"rgba(255,255,255,0.85)" }
+      flameFrom:"rgba(255,255,255,0.95)", flameTo:"rgba(255,255,255,0)", win:"#ffffff", glow:"rgba(255,255,255,0.85)", trailRainbow:true },
+    { id:"phoenix", name:{ru:"Феникс",en:"Phoenix"}, reqLevel:20, price:2200,
+      bodyFrom:"#7a1a00", bodyTo:"#ff7a1a", flameFrom:"rgba(255,220,140,0.95)", flameTo:"rgba(255,100,20,0)", win:"#ffe8c0", glow:"rgba(255,140,50,0.85)", trailColor:"rgba(255,150,40,0.95)", trailEmbers:true },
+    { id:"crystalline", name:{ru:"Кристалл",en:"Crystal"}, reqLevel:24, price:2600,
+      bodyFrom:"#5fb8e0", bodyTo:"#eaffff", flameFrom:"rgba(230,255,255,0.95)", flameTo:"rgba(150,230,255,0)", win:"#ffffff", glow:"rgba(200,250,255,0.9)", trailColor:"rgba(220,255,255,0.95)", trailSparkle:true },
+    { id:"void", name:{ru:"Тьма",en:"Void"}, reqLevel:30, price:3200,
+      bodyFrom:"#060008", bodyTo:"#2a0f4a", flameFrom:"rgba(180,90,255,0.9)", flameTo:"rgba(90,20,180,0)", win:"#d6a6ff", glow:"rgba(150,70,255,0.85)", trailColor:"rgba(160,80,255,0.9)" },
+    { id:"quantum", name:{ru:"Квантум",en:"Quantum"}, reqLevel:40, price:4000, rainbow:true, hueShift:170,
+      flameFrom:"rgba(180,255,255,0.95)", flameTo:"rgba(60,200,255,0)", win:"#eafffe", glow:"rgba(120,255,235,0.9)", trailRainbow:true },
+    { id:"immortal", name:{ru:"Бессмертный",en:"Immortal"}, reqLevel:60, price:6000,
+      bodyFrom:"#fff4d0", bodyTo:"#ffffff", flameFrom:"rgba(255,255,255,0.98)", flameTo:"rgba(255,230,150,0)", win:"#ffffff", glow:"rgba(255,245,210,0.95)", trailColor:"rgba(255,250,220,0.95)", trailSparkle:true }
   ];
   function getSkin(id){ return SKINS.find(s=>s.id===id) || SKINS[0]; }
 
@@ -839,58 +867,82 @@
      ДОСТИЖЕНИЯ
   =========================================================== */
   const ACHIEVEMENTS = [
-    { id:"first_flight", icon:"🚀", reward:50, name:{ru:"Первый полёт",en:"First Flight"}, desc:{ru:"Завершите один полёт",en:"Complete one flight"},
+    { id:"first_flight", icon:"🚀", reward:50, rarity:"common", name:{ru:"Первый полёт",en:"First Flight"}, desc:{ru:"Завершите один полёт",en:"Complete one flight"},
       check:(p)=> p.stats.runs>=1, progress:(p)=> Math.min(p.stats.runs,1)+"/1" },
-    { id:"survive_15", icon:"⏱", reward:50, name:{ru:"Разминка",en:"Warm-up"}, desc:{ru:"Продержитесь 15 секунд",en:"Survive 15 seconds"},
+    { id:"survive_15", icon:"⏱", reward:50, rarity:"common", name:{ru:"Разминка",en:"Warm-up"}, desc:{ru:"Продержитесь 15 секунд",en:"Survive 15 seconds"},
       check:(p)=> p.stats.bestSurvival>=15, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),15)+"/15" },
-    { id:"survive_30", icon:"⏳", reward:120, name:{ru:"Выносливость",en:"Endurance"}, desc:{ru:"Продержитесь 30 секунд",en:"Survive 30 seconds"},
+    { id:"survive_30", icon:"⏳", reward:120, rarity:"uncommon", name:{ru:"Выносливость",en:"Endurance"}, desc:{ru:"Продержитесь 30 секунд",en:"Survive 30 seconds"},
       check:(p)=> p.stats.bestSurvival>=30, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),30)+"/30" },
-    { id:"survive_60", icon:"🕐", reward:250, name:{ru:"Минута в поясе",en:"One Minute In"}, desc:{ru:"Продержитесь 60 секунд",en:"Survive 60 seconds"},
+    { id:"survive_60", icon:"🕐", reward:250, rarity:"rare", name:{ru:"Минута в поясе",en:"One Minute In"}, desc:{ru:"Продержитесь 60 секунд",en:"Survive 60 seconds"},
       check:(p)=> p.stats.bestSurvival>=60, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),60)+"/60" },
-    { id:"survive_120", icon:"🌌", reward:500, name:{ru:"Легенда пояса",en:"Belt Legend"}, desc:{ru:"Продержитесь 120 секунд",en:"Survive 120 seconds"},
+    { id:"survive_120", icon:"🌌", reward:500, rarity:"epic", name:{ru:"Легенда пояса",en:"Belt Legend"}, desc:{ru:"Продержитесь 120 секунд",en:"Survive 120 seconds"},
       check:(p)=> p.stats.bestSurvival>=120, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),120)+"/120" },
-    { id:"score_50", icon:"⭐", reward:60, name:{ru:"Новичок",en:"Rookie"}, desc:{ru:"Наберите 50 очков за полёт",en:"Score 50 in one flight"},
+    { id:"survive_180", icon:"🌀", reward:900, starsReward:10, rarity:"epic", name:{ru:"Три минуты в аду",en:"Three Minutes in Hell"}, desc:{ru:"Продержитесь 180 секунд",en:"Survive 180 seconds"},
+      check:(p)=> p.stats.bestSurvival>=180, progress:(p)=> Math.min(Math.floor(p.stats.bestSurvival),180)+"/180" },
+    { id:"score_50", icon:"⭐", reward:60, rarity:"common", name:{ru:"Новичок",en:"Rookie"}, desc:{ru:"Наберите 50 очков за полёт",en:"Score 50 in one flight"},
       check:(p)=> p.bestScore>=50, progress:(p)=> Math.min(p.bestScore,50)+"/50" },
-    { id:"score_150", icon:"🌟", reward:180, name:{ru:"Уверенная рука",en:"Steady Hand"}, desc:{ru:"Наберите 150 очков за полёт",en:"Score 150 in one flight"},
+    { id:"score_150", icon:"🌟", reward:180, rarity:"uncommon", name:{ru:"Уверенная рука",en:"Steady Hand"}, desc:{ru:"Наберите 150 очков за полёт",en:"Score 150 in one flight"},
       check:(p)=> p.bestScore>=150, progress:(p)=> Math.min(p.bestScore,150)+"/150" },
-    { id:"score_400", icon:"💫", reward:400, name:{ru:"Мастер маршрута",en:"Route Master"}, desc:{ru:"Наберите 400 очков за полёт",en:"Score 400 in one flight"},
+    { id:"score_400", icon:"💫", reward:400, rarity:"rare", name:{ru:"Мастер маршрута",en:"Route Master"}, desc:{ru:"Наберите 400 очков за полёт",en:"Score 400 in one flight"},
       check:(p)=> p.bestScore>=400, progress:(p)=> Math.min(p.bestScore,400)+"/400" },
-    { id:"gem_hunter", icon:"💎", reward:150, name:{ru:"Охотник за кристаллами",en:"Gem Hunter"}, desc:{ru:"Соберите 10 кристаллов за полёт",en:"Collect 10 crystals in one flight"},
+    { id:"score_1000", icon:"🎯", reward:900, starsReward:10, rarity:"epic", name:{ru:"Снайпер маршрута",en:"Route Sniper"}, desc:{ru:"Наберите 1000 очков за полёт",en:"Score 1000 in one flight"},
+      check:(p)=> p.bestScore>=1000, progress:(p)=> Math.min(p.bestScore,1000)+"/1000" },
+    { id:"gem_hunter", icon:"💎", reward:150, rarity:"uncommon", name:{ru:"Охотник за кристаллами",en:"Gem Hunter"}, desc:{ru:"Соберите 10 кристаллов за полёт",en:"Collect 10 crystals in one flight"},
       check:(p)=> p.stats.bestGemsRun>=10, progress:(p)=> Math.min(p.stats.bestGemsRun,10)+"/10" },
-    { id:"gem_master", icon:"👑", reward:350, starsReward:3, name:{ru:"Повелитель кристаллов",en:"Gem Master"}, desc:{ru:"Соберите 25 кристаллов за полёт",en:"Collect 25 crystals in one flight"},
+    { id:"gem_master", icon:"👑", reward:350, starsReward:3, rarity:"rare", name:{ru:"Повелитель кристаллов",en:"Gem Master"}, desc:{ru:"Соберите 25 кристаллов за полёт",en:"Collect 25 crystals in one flight"},
       check:(p)=> p.stats.bestGemsRun>=25, progress:(p)=> Math.min(p.stats.bestGemsRun,25)+"/25" },
-    { id:"collector", icon:"🎨", reward:50, name:{ru:"Коллекционер",en:"Collector"}, desc:{ru:"Купите любой скин",en:"Buy any skin"},
+    { id:"collector", icon:"🎨", reward:50, rarity:"common", name:{ru:"Коллекционер",en:"Collector"}, desc:{ru:"Купите любой скин",en:"Buy any skin"},
       check:(p)=> p.ownedSkins.length>1, progress:null },
-    { id:"fashionista", icon:"👗", reward:300, starsReward:4, name:{ru:"Модник космоса",en:"Space Fashionista"}, desc:{ru:"Соберите 6 скинов",en:"Own 6 skins"},
+    { id:"fashionista", icon:"👗", reward:300, starsReward:4, rarity:"rare", name:{ru:"Модник космоса",en:"Space Fashionista"}, desc:{ru:"Соберите 6 скинов",en:"Own 6 skins"},
       check:(p)=> p.ownedSkins.length>=6, progress:(p)=> Math.min(p.ownedSkins.length,6)+"/6" },
-    { id:"level_5", icon:"🎖", reward:150, name:{ru:"Растущая звезда",en:"Rising Star"}, desc:{ru:"Достигните 5 уровня",en:"Reach level 5"},
+    { id:"skin_collector_all", icon:"👑", reward:1200, starsReward:15, rarity:"legendary", name:{ru:"Гардероб пилота",en:"Pilot's Wardrobe"}, desc:{ru:"Соберите все скины",en:"Own every skin"},
+      check:(p)=> p.ownedSkins.length>=SKINS.length, progress:(p)=> Math.min(p.ownedSkins.length,SKINS.length)+"/"+SKINS.length },
+    { id:"level_5", icon:"🎖", reward:150, rarity:"uncommon", name:{ru:"Растущая звезда",en:"Rising Star"}, desc:{ru:"Достигните 5 уровня",en:"Reach level 5"},
       check:(p)=> p.level>=5, progress:(p)=> Math.min(p.level,5)+"/5" },
-    { id:"level_10", icon:"🏵", reward:300, starsReward:3, name:{ru:"Опытный пилот",en:"Seasoned Pilot"}, desc:{ru:"Достигните 10 уровня",en:"Reach level 10"},
+    { id:"level_10", icon:"🏵", reward:300, starsReward:3, rarity:"rare", name:{ru:"Опытный пилот",en:"Seasoned Pilot"}, desc:{ru:"Достигните 10 уровня",en:"Reach level 10"},
       check:(p)=> p.level>=10, progress:(p)=> Math.min(p.level,10)+"/10" },
-    { id:"level_15", icon:"🏆", reward:550, starsReward:6, name:{ru:"Элита флота",en:"Fleet Elite"}, desc:{ru:"Достигните 15 уровня",en:"Reach level 15"},
+    { id:"level_15", icon:"🏆", reward:550, starsReward:6, rarity:"epic", name:{ru:"Элита флота",en:"Fleet Elite"}, desc:{ru:"Достигните 15 уровня",en:"Reach level 15"},
       check:(p)=> p.level>=15, progress:(p)=> Math.min(p.level,15)+"/15" },
-    { id:"rich", icon:"💰", reward:100, name:{ru:"Магнат",en:"Magnate"}, desc:{ru:"Заработайте 1000 кристаллов",en:"Earn 1000 crystals total"},
+    { id:"rank_admiral", icon:"🎖", reward:1000, starsReward:12, rarity:"legendary", name:{ru:"Адмирал флота",en:"Fleet Admiral"}, desc:{ru:"Достигните 33 уровня (ранг Адмирал)",en:"Reach level 33 (Admiral rank)"},
+      check:(p)=> p.level>=33, progress:(p)=> Math.min(p.level,33)+"/33" },
+    { id:"rich", icon:"💰", reward:100, rarity:"uncommon", name:{ru:"Магнат",en:"Magnate"}, desc:{ru:"Заработайте 1000 кристаллов",en:"Earn 1000 crystals total"},
       check:(p)=> p.stats.lifetimeCrystals>=1000, progress:(p)=> Math.min(p.stats.lifetimeCrystals,1000)+"/1000" },
-    { id:"tycoon", icon:"🏦", reward:450, starsReward:5, name:{ru:"Космический олигарх",en:"Space Tycoon"}, desc:{ru:"Заработайте 5000 кристаллов",en:"Earn 5000 crystals total"},
+    { id:"tycoon", icon:"🏦", reward:450, starsReward:5, rarity:"rare", name:{ru:"Космический олигарх",en:"Space Tycoon"}, desc:{ru:"Заработайте 5000 кристаллов",en:"Earn 5000 crystals total"},
       check:(p)=> p.stats.lifetimeCrystals>=5000, progress:(p)=> Math.min(p.stats.lifetimeCrystals,5000)+"/5000" },
-    { id:"max_shield", icon:"🛡", reward:200, starsReward:4, name:{ru:"Неуязвимый",en:"Untouchable"}, desc:{ru:"Прокачайте щит до максимума",en:"Max out the shield upgrade"},
+    { id:"crystal_millionaire", icon:"💎", reward:1500, starsReward:18, rarity:"legendary", name:{ru:"Кристальный миллионер",en:"Crystal Millionaire"}, desc:{ru:"Заработайте 20000 кристаллов",en:"Earn 20000 crystals total"},
+      check:(p)=> p.stats.lifetimeCrystals>=20000, progress:(p)=> Math.min(p.stats.lifetimeCrystals,20000)+"/20000" },
+    { id:"max_shield", icon:"🛡", reward:200, starsReward:4, rarity:"uncommon", name:{ru:"Неуязвимый",en:"Untouchable"}, desc:{ru:"Прокачайте щит до максимума",en:"Max out the shield upgrade"},
       check:(p)=> (p.upgrades.shield||0)>=3, progress:null },
-    { id:"max_agility", icon:"⚡", reward:200, starsReward:4, name:{ru:"Молниеносный",en:"Lightning Fast"}, desc:{ru:"Прокачайте манёвренность до максимума",en:"Max out the agility upgrade"},
+    { id:"max_agility", icon:"⚡", reward:200, starsReward:4, rarity:"uncommon", name:{ru:"Молниеносный",en:"Lightning Fast"}, desc:{ru:"Прокачайте манёвренность до максимума",en:"Max out the agility upgrade"},
       check:(p)=> (p.upgrades.agility||0)>=3, progress:null },
-    { id:"veteran", icon:"✈️", reward:150, name:{ru:"Ветеран неба",en:"Sky Veteran"}, desc:{ru:"Сыграйте 20 полётов",en:"Play 20 flights"},
+    { id:"max_luck", icon:"🍀", reward:200, starsReward:4, rarity:"uncommon", name:{ru:"Счастливчик",en:"Lucky One"}, desc:{ru:"Прокачайте удачу до максимума",en:"Max out the luck upgrade"},
+      check:(p)=> (p.upgrades.luck||0)>=3, progress:null },
+    { id:"max_magnet", icon:"🧲", reward:200, starsReward:4, rarity:"uncommon", name:{ru:"Магнитная аномалия",en:"Magnetic Anomaly"}, desc:{ru:"Прокачайте магнит до максимума",en:"Max out the magnet upgrade"},
+      check:(p)=> (p.upgrades.magnet||0)>=3, progress:null },
+    { id:"all_upgrades_maxed", icon:"🌟", reward:800, starsReward:12, rarity:"epic", name:{ru:"Полная прокачка",en:"Fully Upgraded"}, desc:{ru:"Прокачайте все улучшения до максимума",en:"Max out every upgrade"},
+      check:(p)=> (p.upgrades.shield||0)>=3 && (p.upgrades.agility||0)>=3 && (p.upgrades.luck||0)>=3 && (p.upgrades.magnet||0)>=3, progress:null },
+    { id:"veteran", icon:"✈️", reward:150, rarity:"uncommon", name:{ru:"Ветеран неба",en:"Sky Veteran"}, desc:{ru:"Сыграйте 20 полётов",en:"Play 20 flights"},
       check:(p)=> p.stats.runs>=20, progress:(p)=> Math.min(p.stats.runs,20)+"/20" },
-    { id:"legend_pilot", icon:"🌠", reward:700, starsReward:8, name:{ru:"Легендарный пилот",en:"Legendary Pilot"}, desc:{ru:"Сыграйте 100 полётов",en:"Play 100 flights"},
+    { id:"legend_pilot", icon:"🌠", reward:700, starsReward:8, rarity:"epic", name:{ru:"Легендарный пилот",en:"Legendary Pilot"}, desc:{ru:"Сыграйте 100 полётов",en:"Play 100 flights"},
       check:(p)=> p.stats.runs>=100, progress:(p)=> Math.min(p.stats.runs,100)+"/100" },
-    { id:"stage_10", icon:"🪐", reward:250, name:{ru:"Первый пояс пройден",en:"First Belt Cleared"}, desc:{ru:"Пройдите 10 этапов режима «Уровни»",en:"Clear 10 stages in Levels mode"},
+    { id:"case_opener_10", icon:"🎁", reward:200, starsReward:3, rarity:"uncommon", name:{ru:"Любитель распаковок",en:"Unboxing Fan"}, desc:{ru:"Откройте 10 кейсов",en:"Open 10 cases"},
+      check:(p)=> (p.stats.casesOpened||0)>=10, progress:(p)=> Math.min(p.stats.casesOpened||0,10)+"/10" },
+    { id:"case_opener_50", icon:"📦", reward:600, starsReward:8, rarity:"epic", name:{ru:"Король кейсов",en:"Case King"}, desc:{ru:"Откройте 50 кейсов",en:"Open 50 cases"},
+      check:(p)=> (p.stats.casesOpened||0)>=50, progress:(p)=> Math.min(p.stats.casesOpened||0,50)+"/50" },
+    { id:"stage_10", icon:"🪐", reward:250, rarity:"rare", name:{ru:"Первый пояс пройден",en:"First Belt Cleared"}, desc:{ru:"Пройдите 10 этапов режима «Уровни»",en:"Clear 10 stages in Levels mode"},
       check:(p)=> (p.stats.maxStageCleared||0)>=10, progress:(p)=> Math.min(p.stats.maxStageCleared||0,10)+"/10" },
-    { id:"stage_20", icon:"🌌", reward:450, starsReward:5, name:{ru:"Глубокий космос",en:"Deep Space"}, desc:{ru:"Пройдите 20 этапов режима «Уровни»",en:"Clear 20 stages in Levels mode"},
+    { id:"stage_20", icon:"🌌", reward:450, starsReward:5, rarity:"rare", name:{ru:"Глубокий космос",en:"Deep Space"}, desc:{ru:"Пройдите 20 этапов режима «Уровни»",en:"Clear 20 stages in Levels mode"},
       check:(p)=> (p.stats.maxStageCleared||0)>=20, progress:(p)=> Math.min(p.stats.maxStageCleared||0,20)+"/20" },
-    { id:"stage_30", icon:"🌠", reward:700, starsReward:7, name:{ru:"Покоритель этапов",en:"Stage Conqueror"}, desc:{ru:"Пройдите 30 этапов режима «Уровни»",en:"Clear 30 stages in Levels mode"},
+    { id:"stage_30", icon:"🌠", reward:700, starsReward:7, rarity:"epic", name:{ru:"Покоритель этапов",en:"Stage Conqueror"}, desc:{ru:"Пройдите 30 этапов режима «Уровни»",en:"Clear 30 stages in Levels mode"},
       check:(p)=> (p.stats.maxStageCleared||0)>=30, progress:(p)=> Math.min(p.stats.maxStageCleared||0,30)+"/30" },
-    { id:"stage_40", icon:"🛰", reward:1000, starsReward:10, name:{ru:"Штурман бездны",en:"Void Navigator"}, desc:{ru:"Пройдите 40 этапов режима «Уровни»",en:"Clear 40 stages in Levels mode"},
+    { id:"stage_40", icon:"🛰", reward:1000, starsReward:10, rarity:"legendary", name:{ru:"Штурман бездны",en:"Void Navigator"}, desc:{ru:"Пройдите 40 этапов режима «Уровни»",en:"Clear 40 stages in Levels mode"},
       check:(p)=> (p.stats.maxStageCleared||0)>=40, progress:(p)=> Math.min(p.stats.maxStageCleared||0,40)+"/40" },
-    { id:"stage_50", icon:"👑", reward:1500, starsReward:15, name:{ru:"Владыка пояса",en:"Belt Overlord"}, desc:{ru:"Пройдите 50 этапов режима «Уровни»",en:"Clear 50 stages in Levels mode"},
-      check:(p)=> (p.stats.maxStageCleared||0)>=50, progress:(p)=> Math.min(p.stats.maxStageCleared||0,50)+"/50" }
+    { id:"stage_50", icon:"👑", reward:1500, starsReward:15, rarity:"legendary", name:{ru:"Владыка пояса",en:"Belt Overlord"}, desc:{ru:"Пройдите 50 этапов режима «Уровни»",en:"Clear 50 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=50, progress:(p)=> Math.min(p.stats.maxStageCleared||0,50)+"/50" },
+    { id:"stage_60", icon:"🌌", reward:2000, starsReward:20, rarity:"legendary", name:{ru:"За гранью пояса",en:"Beyond the Belt"}, desc:{ru:"Пройдите 60 этапов режима «Уровни»",en:"Clear 60 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=60, progress:(p)=> Math.min(p.stats.maxStageCleared||0,60)+"/60" },
+    { id:"stage_75", icon:"♾", reward:2800, starsReward:28, rarity:"legendary", name:{ru:"Бесконечный полёт",en:"Endless Flight"}, desc:{ru:"Пройдите 75 этапов режима «Уровни»",en:"Clear 75 stages in Levels mode"},
+      check:(p)=> (p.stats.maxStageCleared||0)>=75, progress:(p)=> Math.min(p.stats.maxStageCleared||0,75)+"/75" }
   ];
 
   /* ===========================================================
@@ -904,7 +956,7 @@
     bestScore:0, crystals:0, stars:0, xp:0, level:1,
     ownedSkins:["classic"], equippedSkin:"classic",
     upgrades:{ shield:0, agility:0, luck:0, magnet:0 },
-    stats:{ runs:0, lifetimeCrystals:0, bestSurvival:0, bestGemsRun:0, maxStageCleared:0 },
+    stats:{ runs:0, lifetimeCrystals:0, bestSurvival:0, bestGemsRun:0, maxStageCleared:0, casesOpened:0 },
     achievements:{},
     cases:{ standard:0 },
     campaign:{ unlocked:1, completed:{} }
@@ -1075,10 +1127,14 @@
     if(!document.getElementById("case-reveal").classList.contains("hidden")) return;
     if((profile.cases.standard||0) <= 0) return;
     profile.cases.standard--;
+    profile.stats.casesOpened = (profile.stats.casesOpened||0) + 1;
     const reward = rollCaseReward();
     applyCaseReward(reward);
+    const newlyUnlocked = checkAchievements();
     showCaseReveal(reward);
     renderCasesTab();
+    newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
+    if(newlyUnlocked.length) submitToLeaderboard();
   }
 
   /* ---- Тосты ---- */
@@ -1218,7 +1274,7 @@
     usedContinue = false;
     shieldCharges = profile.upgrades.shield || 0;
     invulnUntil = -1;
-    obstacleTimer = 0.6; crystalTimer = 1.0;
+    obstacleTimer = 1.1; crystalTimer = 1.0;
     resetShip();
     refreshShieldHud(); refreshGemsHud();
   }
@@ -1346,7 +1402,33 @@
     state = "profile";
     showScreen("profile");
     renderProfileStats();
+    renderOwnAchievementsGrid();
+    document.getElementById("ptab-stats").textContent = t("statsTab");
+    document.getElementById("ptab-ach").textContent = t("achievementsTab");
+    document.getElementById("stats-list").classList.remove("hidden");
+    document.getElementById("profile-achievements-grid").classList.add("hidden");
+    document.querySelectorAll('[data-ptab]').forEach(b=>b.classList.remove("active"));
+    document.getElementById("ptab-stats").classList.add("active");
   }
+  function renderOwnAchievementsGrid(){
+    const grid = document.getElementById("profile-achievements-grid");
+    grid.innerHTML = "";
+    ACHIEVEMENTS.forEach(a=>{
+      const unlocked = !!profile.achievements[a.id];
+      grid.appendChild(buildAchievementCard(a, unlocked));
+    });
+  }
+  document.querySelectorAll('[data-ptab]').forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      document.querySelectorAll('[data-ptab]').forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.ptab;
+      document.getElementById("stats-list").classList.toggle("hidden", tab!=="stats");
+      document.getElementById("profile-achievements-grid").classList.toggle("hidden", tab!=="ach");
+    });
+  });
+
   function renderProfileStats(){
     document.getElementById("profile-crystals").textContent = profile.crystals;
     document.getElementById("profile-title").textContent = t("profileTitle");
@@ -1435,6 +1517,7 @@
         score: profile.bestScore || 0,
         level: profile.level || 1,
         maxStage: profile.stats.maxStageCleared || 0,
+        achievements: Object.keys(profile.achievements||{}),
         updatedAt: Date.now()
       });
     }catch(e){}
@@ -1474,7 +1557,9 @@
     }catch(e){ list.innerHTML = "<div class='hint'>"+t("lbError")+"</div>"; }
   }
 
+  let currentViewedEntry = null;
   function openViewedProfile(entry){
+    currentViewedEntry = entry;
     state = "viewedprofile";
     showScreen("viewedprofile");
     document.getElementById("viewed-title").textContent = t("viewedProfileTitle");
@@ -1482,6 +1567,8 @@
     document.getElementById("viewed-avatar").textContent = entry.avatar || AVATARS[0];
     document.getElementById("viewed-name").textContent = entry.name || "Pilot";
     document.getElementById("viewed-bio").textContent = entry.bio || "";
+    document.getElementById("vtab-stats").textContent = t("statsTab");
+    document.getElementById("vtab-ach").textContent = t("achievementsTab");
     const rows = [
       ["🏆", t("best"), entry.score||0],
       ["🎖", t("level"), entry.level||1],
@@ -1489,7 +1576,30 @@
     ];
     const list = document.getElementById("viewed-stats-list");
     renderStatTiles(list, rows);
+    renderViewedAchievementsGrid(entry);
+    document.getElementById("viewed-stats-list").classList.remove("hidden");
+    document.getElementById("viewed-achievements-grid").classList.add("hidden");
+    document.querySelectorAll('[data-vtab]').forEach(b=>b.classList.remove("active"));
+    document.getElementById("vtab-stats").classList.add("active");
   }
+  function renderViewedAchievementsGrid(entry){
+    const grid = document.getElementById("viewed-achievements-grid");
+    grid.innerHTML = "";
+    const unlockedIds = entry.achievements || [];
+    ACHIEVEMENTS.forEach(a=>{
+      grid.appendChild(buildAchievementCard(a, unlockedIds.includes(a.id)));
+    });
+  }
+  document.querySelectorAll('[data-vtab]').forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      document.querySelectorAll('[data-vtab]').forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.vtab;
+      document.getElementById("viewed-stats-list").classList.toggle("hidden", tab!=="stats");
+      document.getElementById("viewed-achievements-grid").classList.toggle("hidden", tab!=="ach");
+    });
+  });
 
   function startGame(){
     gameMode = "arcade";
@@ -1544,7 +1654,8 @@
     const achStarBonus = newlyUnlocked.reduce((s,a)=>s+(a.starsReward||0),0);
     const levelCrystalsTotal = result.levelUps.reduce((s,l)=>s+l.crystals,0);
     let recordStars = 0;
-    if(result.isRecord){ recordStars = 2; profile.stars += recordStars; submitToLeaderboard(); }
+    if(result.isRecord){ recordStars = 2; profile.stars += recordStars; }
+    if(result.isRecord || newlyUnlocked.length) submitToLeaderboard();
     saveProfile();
     updateBestBadge();
 
@@ -1670,6 +1781,7 @@
     profile.stats.maxStageCleared = Math.max(profile.stats.maxStageCleared||0, campaignStage);
     const newlyUnlocked = checkAchievements();
     saveProfile();
+    submitToLeaderboard();
 
     showStageResult(true, crystalsReward, starsReward);
     newlyUnlocked.forEach(a=> queueToast("🏅 "+a.name[lang]+"  +"+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"")));
@@ -2015,22 +2127,29 @@
     });
   }
 
+  const RARITY_KEY = { common:"rarityCommon", uncommon:"rarityUncommon", rare:"rarityRare", epic:"rarityEpic", legendary:"rarityLegendary" };
+
+  function buildAchievementCard(a, unlocked){
+    const card = document.createElement("div");
+    card.className = "ach-card rarity-"+(a.rarity||"common")+" "+(unlocked ? "unlocked" : "locked");
+    if(unlocked){ const c=document.createElement("div"); c.className="ach-check"; c.textContent="✅"; card.appendChild(c); }
+    const icon = document.createElement("div"); icon.className="ach-icon"; icon.textContent=a.icon; card.appendChild(icon);
+    const nameEl = document.createElement("div"); nameEl.className="name"; nameEl.textContent=a.name[lang]; card.appendChild(nameEl);
+    const descEl = document.createElement("div"); descEl.className="desc"; descEl.textContent=a.desc[lang]; card.appendChild(descEl);
+    const tagEl = document.createElement("div"); tagEl.className="rarity-tag"; tagEl.textContent=t(RARITY_KEY[a.rarity||"common"]); card.appendChild(tagEl);
+    if(!unlocked && a.progress){ const p=document.createElement("div"); p.className="progress"; p.textContent=a.progress(profile); card.appendChild(p); }
+    const rewardEl = document.createElement("div"); rewardEl.className="reward";
+    rewardEl.textContent=(unlocked?"✓ ":"+")+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"");
+    card.appendChild(rewardEl);
+    return card;
+  }
+
   function renderAchievementsGrid(){
     const grid = document.getElementById("achievements-grid");
     grid.innerHTML = "";
     ACHIEVEMENTS.forEach(a=>{
       const unlocked = !!profile.achievements[a.id];
-      const card = document.createElement("div");
-      card.className = "ach-card " + (unlocked ? "unlocked" : "locked");
-      if(unlocked){ const c=document.createElement("div"); c.className="ach-check"; c.textContent="✅"; card.appendChild(c); }
-      const icon = document.createElement("div"); icon.className="ach-icon"; icon.textContent=a.icon; card.appendChild(icon);
-      const nameEl = document.createElement("div"); nameEl.className="name"; nameEl.textContent=a.name[lang]; card.appendChild(nameEl);
-      const descEl = document.createElement("div"); descEl.className="desc"; descEl.textContent=a.desc[lang]; card.appendChild(descEl);
-      if(!unlocked && a.progress){ const p=document.createElement("div"); p.className="progress"; p.textContent=a.progress(profile); card.appendChild(p); }
-      const rewardEl = document.createElement("div"); rewardEl.className="reward";
-      rewardEl.textContent=(unlocked?"✓ ":"+")+a.reward+" 💎"+(a.starsReward?(" +"+a.starsReward+" ⭐"):"");
-      card.appendChild(rewardEl);
-      grid.appendChild(card);
+      grid.appendChild(buildAchievementCard(a, unlocked));
     });
   }
 
@@ -2187,7 +2306,16 @@
     if(Math.random() < dt*46){
       const skin = getSkin(profile.equippedSkin);
       const jitter = (Math.random()*2-1)*4;
-      spawnParticles(ship.x-ship.r*0.95, ship.y+jitter, skin.flameFrom, 1+Math.floor(Math.random()*2), false, 70, 0.4);
+      let trailColor = skin.trailColor || skin.flameFrom;
+      if(skin.trailRainbow){
+        const hue = ((elapsed*(skin.hueShift?skin.hueShift*0.4:70)) ) % 360;
+        trailColor = "hsla("+hue+",90%,65%,0.9)";
+      }
+      const count = skin.trailEmbers ? 2+Math.floor(Math.random()*2) : 1+Math.floor(Math.random()*2);
+      spawnParticles(ship.x-ship.r*0.95, ship.y+jitter, trailColor, count, false, skin.trailEmbers?90:70, skin.trailEmbers?0.6:0.4);
+      if(skin.trailSparkle && Math.random()<0.4){
+        spawnParticles(ship.x-ship.r*0.6, ship.y+jitter*1.5, "rgba(255,255,255,0.95)", 1, false, 40, 0.5);
+      }
     }
     if(Math.random() < dt*3){
       spawnParticles(ship.x+ship.r*0.2, ship.y-ship.r*0.3, "rgba(255,255,255,0.9)", 1, false, 18, 0.5);
@@ -2195,8 +2323,9 @@
 
     obstacleTimer -= dt;
     if(obstacleTimer<=0){
-      spawnObstacle();
-      const interval = gameMode==="campaign" ? stageSpawnInterval(campaignStage, elapsed) : Math.max(0.24, 1.05 - elapsed*0.016);
+      const spawnCount = gameMode==="campaign" ? stageSpawnCount(campaignStage) : arcadeSpawnCount(elapsed);
+      for(let i=0;i<spawnCount;i++) spawnObstacle(i*44);
+      const interval = gameMode==="campaign" ? stageSpawnInterval(campaignStage, elapsed) : Math.max(0.18, 1.3 - elapsed*0.018);
       obstacleTimer = interval * (0.75+Math.random()*0.5);
     }
     crystalTimer -= dt;
@@ -2373,7 +2502,8 @@
     const skin = getSkin(skinId);
     let bodyFrom = skin.bodyFrom, bodyTo = skin.bodyTo;
     if(skin.rainbow){
-      const hue = ((timeSec||0)*70) % 360;
+      const speed = skin.hueShift || 70;
+      const hue = ((timeSec||0)*speed) % 360;
       bodyFrom = "hsl("+hue+",85%,60%)";
       bodyTo = "hsl("+((hue+50)%360)+",85%,45%)";
     }
@@ -2622,6 +2752,7 @@
     if(!profile.cases) profile.cases = { standard:0 };
     if(profile.cases.standard===undefined) profile.cases.standard = 0;
     if(profile.stats.maxStageCleared===undefined) profile.stats.maxStageCleared = 0;
+    if(profile.stats.casesOpened===undefined) profile.stats.casesOpened = 0;
     if(!profile.campaign) profile.campaign = { unlocked:1, completed:{} };
     if(!profile.campaign.completed) profile.campaign.completed = {};
     if(!profile.campaign.unlocked) profile.campaign.unlocked = 1;
