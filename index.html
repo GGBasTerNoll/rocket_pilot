@@ -292,11 +292,25 @@
     background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;
     border:1px solid rgba(255,255,255,0.15);
   }
+  .rank-medal{
+    flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:'Orbitron',sans-serif;font-weight:900;color:rgba(0,0,0,0.55);
+    box-shadow:0 2px 6px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.55), inset 0 -3px 5px rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.35);text-shadow:0 1px 0 rgba(255,255,255,0.3);
+  }
+  .medal-pop > div{ animation:medalPop .5s cubic-bezier(.3,1.6,.4,1); }
+  @keyframes medalPop{0%{transform:scale(0.3);filter:brightness(2.4);}60%{transform:scale(1.3);}100%{transform:scale(1);filter:brightness(1);}}
+  .xp-icon{display:inline-block;width:1em;height:1em;vertical-align:-0.12em;
+    background:conic-gradient(from 0deg, var(--accent), var(--accent3), var(--accent), var(--accent3));
+    clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  }
   #menu-profile .rank-block{text-align:left;}
   #menu-profile .rank-name{font-size:14px;font-weight:800;color:var(--accent);}
   #menu-profile .lvl-text{font-size:11px;color:var(--muted);}
   #menu-profile .xp-bar-bg{width:110px;height:7px;border-radius:4px;background:rgba(255,255,255,0.12);overflow:hidden;margin-top:4px;}
-  #menu-profile .xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));width:0%;transition:width .3s ease;}
+  #menu-profile .xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));width:0%;transition:width 1.1s cubic-bezier(.2,.8,.3,1);}
+  #menu-profile .xp-bar-fill.leveling{box-shadow:0 0 10px var(--accent);}
+  #menu-profile .xp-amount{font-size:10px;color:var(--muted);margin-top:3px;}
   #menu-profile .crystals{font-family:'Orbitron',sans-serif;display:flex;align-items:center;gap:5px;font-weight:800;color:var(--gold);font-size:14px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.15);}
   #menu-profile .crystals.stars-c{color:#7de0ff;}
   #menu-profile .profile-arrow{color:var(--muted);font-size:20px;font-weight:700;margin-left:2px;}
@@ -632,9 +646,11 @@
 
     <div id="menu-profile" role="button">
       <div class="menu-profile-avatar" id="menu-profile-avatar">🧑‍🚀</div>
+      <div id="menu-rank-medal"></div>
       <div class="rank-block">
-        <div class="rank-name" id="menu-rank">Кадет · Ур. 1</div>
+        <div class="rank-name" id="menu-rank">Кадет I</div>
         <div class="xp-bar-bg"><div class="xp-bar-fill" id="menu-xp-fill"></div></div>
+        <div class="xp-amount"><span class="xp-icon"></span> <span id="menu-xp-amount">0/70</span></div>
       </div>
       <div class="crystals">💎 <span id="menu-crystals">0</span></div>
       <div class="crystals stars-c">⭐ <span id="menu-stars">0</span></div>
@@ -857,26 +873,58 @@
   /* ===========================================================
      РАНГИ
   =========================================================== */
-  const RANKS = [
-    {min:1,  name:{ru:"Кадет",       en:"Cadet"}},
-    {min:3,  name:{ru:"Пилот",       en:"Pilot"}},
-    {min:6,  name:{ru:"Ас",          en:"Ace"}},
-    {min:10, name:{ru:"Коммандер",   en:"Commander"}},
-    {min:15, name:{ru:"Ветеран",     en:"Veteran"}},
-    {min:20, name:{ru:"Легенда",     en:"Legend"}},
-    {min:26, name:{ru:"Элита флота", en:"Fleet Elite"}},
-    {min:33, name:{ru:"Адмирал",     en:"Admiral"}},
-    {min:40, name:{ru:"Покоритель звёзд", en:"Star Conqueror"}},
-    {min:50, name:{ru:"Мифический пилот", en:"Mythic Pilot"}},
-    {min:65, name:{ru:"Владыка космоса",  en:"Lord of Space"}},
-    {min:80, name:{ru:"Бессмертный",      en:"Immortal"}}
+  // Ранги в стиле "Brawl Stars": имя держится 5 уровней подряд, отличаясь римской цифрой (I–V),
+  // после пятого — новое имя. У каждого имени свой цвет медали.
+  const RANK_NAMES = [
+    {ru:"Кадет",       en:"Cadet"},
+    {ru:"Пилот",       en:"Pilot"},
+    {ru:"Ас",          en:"Ace"},
+    {ru:"Коммандер",   en:"Commander"},
+    {ru:"Ветеран",     en:"Veteran"},
+    {ru:"Легенда",     en:"Legend"},
+    {ru:"Элита флота", en:"Fleet Elite"},
+    {ru:"Адмирал",     en:"Admiral"},
+    {ru:"Покоритель звёзд", en:"Star Conqueror"},
+    {ru:"Мифический пилот", en:"Mythic Pilot"},
+    {ru:"Владыка космоса",  en:"Lord of Space"},
+    {ru:"Бессмертный",      en:"Immortal"}
   ];
+  const RANK_COLORS = [
+    ["#7a4a20","#c98a4e"], ["#6b7690","#c9d2e6"], ["#a87a1e","#ffd166"], ["#1e6b45","#3fd98a"],
+    ["#1e4a8a","#5a9dff"], ["#6a2e9a","#c084ff"], ["#9a1e3a","#ff5c7a"], ["#5a6270","#e5e9f0"],
+    ["#0e7a8a","#5eebff"], ["#2a1050","#a06bff"], ["#7a2e9a","#ff8fd6"], ["#c9a94a","#fff4d0"]
+  ];
+  function toRoman(num){
+    const map = [[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]];
+    let res = "", n = Math.max(1,num);
+    for(const [v,s] of map){ while(n>=v){ res+=s; n-=v; } }
+    return res || "I";
+  }
   function getRank(level){
-    let r = RANKS[0];
-    for(const rr of RANKS){ if(level>=rr.min) r=rr; }
-    return r;
+    const lvl = Math.max(1, level);
+    const rawIndex = Math.floor((lvl-1)/5);
+    const tierIndex = Math.min(RANK_NAMES.length-1, rawIndex);
+    let numeral;
+    if(rawIndex >= RANK_NAMES.length){
+      numeral = lvl - (RANK_NAMES.length-1)*5;
+    } else {
+      numeral = ((lvl-1)%5)+1;
+    }
+    return {
+      name: RANK_NAMES[tierIndex],
+      roman: toRoman(numeral),
+      numeral, tierIndex,
+      colors: RANK_COLORS[tierIndex],
+      label(lang){ return this.name[lang]+" "+this.roman; }
+    };
   }
   function xpToNext(level){ return 70 + (level-1)*45 + Math.floor((level-1)*(level-1)*1.8); }
+
+  function rankMedalHTML(rank, size){
+    size = size || 44;
+    return "<div class='rank-medal' style='width:"+size+"px;height:"+size+"px;font-size:"+Math.round(size*0.4)+"px;"+
+      "background:radial-gradient(circle at 35% 30%,"+rank.colors[1]+","+rank.colors[0]+");'>"+rank.roman+"</div>";
+  }
 
   /* ===========================================================
      СКИНЫ
@@ -979,8 +1027,8 @@
       check:(p)=> p.level>=10, progress:(p)=> Math.min(p.level,10)+"/10" },
     { id:"level_15", icon:"🏆", reward:550, starsReward:6, rarity:"epic", name:{ru:"Элита флота",en:"Fleet Elite"}, desc:{ru:"Достигните 15 уровня",en:"Reach level 15"},
       check:(p)=> p.level>=15, progress:(p)=> Math.min(p.level,15)+"/15" },
-    { id:"rank_admiral", icon:"🎖", reward:1000, starsReward:12, rarity:"legendary", name:{ru:"Адмирал флота",en:"Fleet Admiral"}, desc:{ru:"Достигните 33 уровня (ранг Адмирал)",en:"Reach level 33 (Admiral rank)"},
-      check:(p)=> p.level>=33, progress:(p)=> Math.min(p.level,33)+"/33" },
+    { id:"rank_admiral", icon:"🎖", reward:1000, starsReward:12, rarity:"legendary", name:{ru:"Адмирал флота",en:"Fleet Admiral"}, desc:{ru:"Достигните 36 уровня (ранг Адмирал I)",en:"Reach level 36 (Admiral I rank)"},
+      check:(p)=> p.level>=36, progress:(p)=> Math.min(p.level,36)+"/36" },
     { id:"rich", icon:"💰", reward:100, rarity:"uncommon", name:{ru:"Магнат",en:"Magnate"}, desc:{ru:"Заработайте 1000 кристаллов",en:"Earn 1000 crystals total"},
       check:(p)=> p.stats.lifetimeCrystals>=1000, progress:(p)=> Math.min(p.stats.lifetimeCrystals,1000)+"/1000" },
     { id:"tycoon", icon:"🏦", reward:450, starsReward:5, rarity:"rare", name:{ru:"Космический олигарх",en:"Space Tycoon"}, desc:{ru:"Заработайте 5000 кристаллов",en:"Earn 5000 crystals total"},
@@ -1390,6 +1438,7 @@
   let gameMode = "arcade"; // "arcade" | "campaign"
   let campaignStage = 1;
   let arcadeMultiplier = 1;
+  let lastRunXpGain = null;
   let ship = { x:0, y:0, vx:0, vy:0, rot:0, r:19 };
   let targetX=0, targetY=0;
   let dragActive=false;
@@ -1523,7 +1572,13 @@
 
   function goMenu(){
     state = "menu";
-    refreshProfileWidgets();
+    if(lastRunXpGain){
+      const anim = lastRunXpGain;
+      lastRunXpGain = null;
+      animateXpGain(anim);
+    } else {
+      refreshProfileWidgets();
+    }
     showScreen("menu");
     const greet = document.getElementById("menu-greeting");
     if(profile.name){
@@ -1821,7 +1876,9 @@
     triggerHitFlash();
     try{ if(window.ysdk && ysdk.features && ysdk.features.GameplayAPI){ ysdk.features.GameplayAPI.stop(); } }catch(e){}
 
+    const prevLevel = profile.level, prevXp = profile.xp;
     const result = addProgress(score);
+    lastRunXpGain = { prevLevel, prevXp, newLevel:profile.level, newXp:profile.xp };
     updateRunStats(elapsed, collectedThisRun);
     const newlyUnlocked = checkAchievements();
     const achBonus = newlyUnlocked.reduce((s,a)=>s+a.reward,0);
@@ -1841,7 +1898,7 @@
     document.getElementById("new-record-text").textContent = t("newRecord") + (recordStars>0 ? " +"+recordStars+" ⭐" : "");
     document.getElementById("levelup-text").classList.toggle("hidden", !result.leveledUp);
     if(result.leveledUp){
-      document.getElementById("levelup-text").textContent = t("levelUp")+" "+result.rank.name[lang]+" ("+t("level")+" "+profile.level+")";
+      document.getElementById("levelup-text").textContent = t("levelUp")+" "+result.rank.name[lang]+" "+result.rank.roman;
       sndLevelUp();
     }
     document.getElementById("continue-btn").classList.toggle("hidden", usedContinue);
@@ -2137,6 +2194,7 @@
     titleEl.textContent = lang==="ru" ? "Открываем…" : "Opening…";
     valEl.classList.add("hidden");
     claimBtn.classList.add("hidden");
+    document.getElementById("case-reveal-ship").classList.add("hidden");
 
     const track = document.getElementById("reel-track");
     const viewport = document.getElementById("reel-viewport");
@@ -2153,8 +2211,15 @@
     items.forEach((it,i)=>{
       const el = document.createElement("div");
       el.className = "reel-item rarity-"+(it.rarity||"common");
-      el.textContent = it.icon || "🎁";
       el.dataset.index = i;
+      if(it.type==="skin" && it.skinId){
+        const c = document.createElement("canvas");
+        c.width = 56; c.height = 56;
+        el.appendChild(c);
+        drawShipAt(c.getContext("2d"), 28, 30, 12, -0.1, it.skinId, 0.7, 0.6);
+      } else {
+        el.textContent = it.icon || "🎁";
+      }
       track.appendChild(el);
     });
 
@@ -2176,11 +2241,18 @@
       track.style.transform = "translateX(-"+targetOffset+"px)";
     });
 
+    const shipCanvas = document.getElementById("case-reveal-ship");
     reelResolveTimer = setTimeout(()=>{
       const winEl = track.querySelector('[data-index="'+winIndex+'"]');
       if(winEl) winEl.classList.add("landed");
       sndBuy();
       titleEl.textContent = t("caseGot");
+      if(reward.type==="skin" && reward.skinId){
+        shipCanvas.classList.remove("hidden");
+        drawShipAt(shipCanvas.getContext("2d"), 48, 50, 20, -0.1, reward.skinId, 0.9, 0.6);
+      } else {
+        shipCanvas.classList.add("hidden");
+      }
       valEl.textContent = rewardValueText(reward);
       valEl.classList.remove("hidden");
       claimBtn.textContent = t("claim");
@@ -2357,17 +2429,73 @@
     });
   }
 
-  function refreshProfileWidgets(){
+  function refreshProfileWidgets(animate){
     updateBestBadge();
     const rank = getRank(profile.level);
-    document.getElementById("menu-rank").textContent = rank.name[lang] + " · " + t("level") + " " + profile.level;
+    document.getElementById("menu-rank").textContent = rank.name[lang] + " " + rank.roman;
+    document.getElementById("menu-rank-medal").innerHTML = rankMedalHTML(rank, 34);
     document.getElementById("menu-crystals").textContent = profile.crystals;
     document.getElementById("menu-stars").textContent = profile.stars;
     document.getElementById("menu-profile-avatar").textContent = profile.avatar || AVATARS[0];
-    const pct = Math.min(100, Math.round((profile.xp/xpToNext(profile.level))*100));
-    document.getElementById("menu-xp-fill").style.width = pct+"%";
+    const need = xpToNext(profile.level);
+    const pct = Math.min(100, Math.round((profile.xp/need)*100));
+    const fillEl = document.getElementById("menu-xp-fill");
+    if(!animate) fillEl.style.transition = "none";
+    fillEl.style.width = pct+"%";
+    if(!animate) requestAnimationFrame(()=>{ fillEl.style.transition = ""; });
+    document.getElementById("menu-xp-amount").textContent = profile.xp+"/"+need;
   }
   function updateBestBadge(){ document.getElementById("best-value").textContent = profile.bestScore; }
+
+  // Анимация начисления опыта на главном экране (в стиле Brawl Stars): полоса долетает
+  // до конца, при левел-апе — вспышка и новая медаль, затем долив остатка с нуля.
+  function animateXpGain(anim){
+    const { prevLevel, prevXp, newLevel, newXp } = anim;
+    updateBestBadge();
+    document.getElementById("menu-crystals").textContent = profile.crystals;
+    document.getElementById("menu-stars").textContent = profile.stars;
+    document.getElementById("menu-profile-avatar").textContent = profile.avatar || AVATARS[0];
+
+    const fillEl = document.getElementById("menu-xp-fill");
+    const rankEl = document.getElementById("menu-rank");
+    const medalEl = document.getElementById("menu-rank-medal");
+    const amountEl = document.getElementById("menu-xp-amount");
+
+    const prevRank = getRank(prevLevel);
+    rankEl.textContent = prevRank.name[lang]+" "+prevRank.roman;
+    medalEl.innerHTML = rankMedalHTML(prevRank, 34);
+    const prevNeed = xpToNext(prevLevel);
+    fillEl.style.transition = "none";
+    fillEl.style.width = Math.min(100, Math.round(prevXp/prevNeed*100))+"%";
+    amountEl.textContent = prevXp+"/"+prevNeed;
+
+    requestAnimationFrame(()=>{
+      fillEl.style.transition = "width 1.1s cubic-bezier(.2,.8,.3,1)";
+      if(newLevel>prevLevel){
+        fillEl.style.width = "100%";
+        setTimeout(()=>{
+          sndLevelUp();
+          const nr = getRank(newLevel);
+          rankEl.textContent = nr.name[lang]+" "+nr.roman;
+          medalEl.innerHTML = rankMedalHTML(nr, 34);
+          medalEl.classList.add("medal-pop");
+          setTimeout(()=>medalEl.classList.remove("medal-pop"), 500);
+          fillEl.style.transition = "none";
+          fillEl.style.width = "0%";
+          const newNeed = xpToNext(newLevel);
+          requestAnimationFrame(()=>{
+            fillEl.style.transition = "width 1.1s cubic-bezier(.2,.8,.3,1)";
+            fillEl.style.width = Math.min(100, Math.round(newXp/newNeed*100))+"%";
+            amountEl.textContent = newXp+"/"+newNeed;
+          });
+        }, 1150);
+      } else {
+        const need = xpToNext(newLevel);
+        fillEl.style.width = Math.min(100, Math.round(newXp/need*100))+"%";
+        amountEl.textContent = newXp+"/"+need;
+      }
+    });
+  }
 
   /* ===========================================================
      СПАВН ОБЪЕКТОВ
