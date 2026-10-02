@@ -661,6 +661,9 @@
   .level-row .diff-pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;}
   .level-row .lv-status{font-size:16px;}
   .level-row.case-row{border-left:3px solid var(--gold);}
+  .level-row .lv-badge small{display:block;font-family:'Rubik',sans-serif;font-size:9.5px;font-weight:600;opacity:.8;margin-top:2px;white-space:nowrap;}
+  .level-row .lv-skin{color:#c084ff;font-weight:700;}
+  .level-row.rank-up{border-color:rgba(255,209,102,0.55);}
 
   #ads-overlay{
     position:absolute;inset:0;background:rgba(2,4,10,0.92);z-index:20;
@@ -703,21 +706,35 @@
 
   /* ---- Барабан открытия кейса (CS:GO-style) ---- */
   .reel-viewport{
-    position:relative;width:min(340px,86vw);height:92px;overflow:hidden;border-radius:14px;
+    position:relative;width:min(360px,88vw);height:122px;overflow:hidden;border-radius:14px;
     background:rgba(0,0,0,0.4);border:1px solid rgba(255,209,102,0.4);
     box-shadow:inset 0 0 24px rgba(0,0,0,0.6);
   }
   .reel-track{display:flex;align-items:center;height:100%;will-change:transform;padding:0 0;}
   .reel-item{
-    flex:0 0 74px;height:74px;margin:0 4px;border-radius:13px;
+    flex:0 0 92px;height:106px;margin:0 4px;border-radius:13px;
     background:var(--panel2);border:2px solid rgba(255,255,255,0.12);
-    display:flex;align-items:center;justify-content:center;font-size:30px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;box-sizing:border-box;
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   .reel-item.rarity-common{border-color:rgba(154,176,201,0.4);}
   .reel-item.rarity-uncommon{border-color:rgba(79,209,255,0.55);}
   .reel-item.rarity-rare{border-color:rgba(180,120,255,0.65);}
+  .reel-item.rarity-epic{border-color:rgba(255,143,214,0.7);}
   .reel-item.rarity-legendary{border-color:rgba(255,209,102,0.8);}
+  .reel-ic{height:40px;display:flex;align-items:center;justify-content:center;font-size:30px;line-height:1;}
+  .reel-lb{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;text-align:center;line-height:1.1;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .reel-vl{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:800;color:var(--gold);text-align:center;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .case-reveal-value small{display:block;font-family:'Rubik',sans-serif;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;text-shadow:none;margin-bottom:2px;}
+  .case-contents{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;width:100%;margin-bottom:12px;}
+  .cc-item{background:var(--panel2);border:2px solid rgba(255,255,255,0.12);border-radius:13px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;}
+  .cc-item.rarity-common{border-color:rgba(154,176,201,0.4);}
+  .cc-item.rarity-uncommon{border-color:rgba(79,209,255,0.55);}
+  .cc-item.rarity-rare{border-color:rgba(180,120,255,0.65);}
+  .cc-item.rarity-legendary{border-color:rgba(255,209,102,0.8);}
+  .cc-item .cc-ic{font-size:26px;line-height:1.1;}
+  .cc-item .cc-lb{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+  .cc-item .cc-vl{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:800;color:var(--gold);}
   .reel-item.landed{
     box-shadow:0 0 22px currentColor, 0 0 40px rgba(255,209,102,0.4);
     transform:scale(1.08);
@@ -741,7 +758,11 @@
   }
   #audio-settings-btn{left:auto;right:calc(16px + env(safe-area-inset-right));z-index:20;}
   #audio-settings-btn:hover{border-color:rgba(56,189,248,0.6);box-shadow:0 0 18px rgba(56,189,248,0.35);}
-  #best-badge{right:calc(70px + env(safe-area-inset-right));}
+  /* Кнопка настроек — только на главном экране меню */
+  #audio-settings-btn{display:none;}
+  body.in-menu #audio-settings-btn{display:flex;}
+  #best-badge{right:calc(16px + env(safe-area-inset-right));}
+  body.in-menu #best-badge{right:calc(70px + env(safe-area-inset-right));}
 
   #menu-screen{overflow:hidden;background:radial-gradient(ellipse at 30% 20%, #16223b 0%, #0b1224 55%, #060911 100%);}
   #menu-screen > #menu-bg{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;animation:none;}
@@ -1331,6 +1352,8 @@
         <button class="btn" id="open-case-btn">Открыть кейс</button>
       </div>
       <button class="btn reward small" id="earn-stars-btn">📺 +⭐ за рекламу</button>
+      <div class="shop-title" id="case-contents-title">Что в кейсе</div>
+      <div class="case-contents" id="case-contents"></div>
       <div class="shop-title" id="shop-title">Магазин кейсов</div>
       <div id="case-shop-list"></div>
     </div>
@@ -1555,7 +1578,7 @@
     return res || "I";
   }
   function getRank(level){
-    const lvl = Math.max(1, level);
+    const lvl = Math.min(MAX_LEVEL, Math.max(1, level));
     const rawIndex = Math.floor((lvl-1)/5);
     const tierIndex = Math.min(RANK_NAMES.length-1, rawIndex);
     let numeral;
@@ -1572,7 +1595,13 @@
       label(lang){ return this.name[lang]+" "+this.roman; }
     };
   }
+  const MAX_LEVEL = 60;   // 12 рангов × 5 уровней
   function xpToNext(level){ return 70 + (level-1)*45 + Math.floor((level-1)*(level-1)*1.8); }
+  function xpPct(level, xp){ return level >= MAX_LEVEL ? 100 : Math.min(100, Math.round(xp/xpToNext(level)*100)); }
+  function xpText(level, xp){ return level >= MAX_LEVEL ? "MAX" : (xp+"/"+xpToNext(level)); }
+  function clampLevel(){
+    if(profile && profile.level >= MAX_LEVEL){ profile.level = MAX_LEVEL; profile.xp = 0; }
+  }
 
   function rankMedalHTML(rank, size){
     size = size || 44;
@@ -1888,6 +1917,7 @@
   }
 
   function addProgress(scoreAchieved){
+    clampLevel();
     const luckLvl = profile.upgrades.luck || 0;
     const crystalsEarned = Math.round((scoreAchieved*0.8 + 5) * (1 + luckLvl*0.15));
     const xpEarned = Math.round(scoreAchieved*0.32 + 6);
@@ -1899,7 +1929,7 @@
 
     let leveledUp = false;
     const levelUps = [];
-    while(profile.xp >= xpToNext(profile.level)){
+    while(profile.level < MAX_LEVEL && profile.xp >= xpToNext(profile.level)){
       profile.xp -= xpToNext(profile.level);
       profile.level++;
       leveledUp = true;
@@ -1915,6 +1945,7 @@
       }
       levelUps.push({ level:profile.level, crystals: reward.crystals + reward.caseBonus, gotCase });
     }
+    if(profile.level >= MAX_LEVEL) profile.xp = 0;   // максимум: опыт больше не копится
     const isRecord = scoreAchieved > profile.bestScore;
     if(isRecord) profile.bestScore = scoreAchieved;
 
@@ -1953,29 +1984,71 @@
     { id:"standard", price:40, name:{ru:"Кейс",en:"Case"} }
   ];
 
+  // Категории наград: у каждой есть иконка и подпись (как в CS — иконка, под ней название и значение)
+  const REWARD_LABELS = {
+    crystalsS: { icon:"💎", ru:"Алмазы",        en:"Diamonds" },
+    crystalsL: { icon:"💰", ru:"Мешок алмазов", en:"Diamond bag" },
+    starsS:    { icon:"⭐", ru:"Звёзды",        en:"Stars" },
+    starsL:    { icon:"🌟", ru:"Много звёзд",   en:"Star haul" },
+    skin:      { icon:"🛸", ru:"Корабль",       en:"Ship" }
+  };
+  function rint(n){ return Math.floor(Math.random()*n); }
+  function makeReward(kind, skinId){
+    if(kind==="crystalsS") return { type:"crystals", kind, amount:50+rint(51),  icon:"💎", rarity:"common" };
+    if(kind==="crystalsL") return { type:"crystals", kind, amount:120+rint(121), icon:"💰", rarity:"uncommon" };
+    if(kind==="starsS")    return { type:"stars",    kind, amount:2+rint(3),    icon:"⭐", rarity:"uncommon" };
+    if(kind==="starsL")    return { type:"stars",    kind, amount:6+rint(5),    icon:"🌟", rarity:"rare" };
+    const sk = getSkin(skinId);
+    return { type:"skin", kind:"skin", skinId:sk.id, icon:"🛸", rarity: (sk.rarity==="common"?"rare":sk.rarity) || "legendary" };
+  }
   function rollCaseReward(){
     const roll = Math.random();
-    if(roll < 0.40) return { type:"crystals", amount: 50+Math.floor(Math.random()*51), icon:"💎", rarity:"common" };
-    if(roll < 0.65) return { type:"crystals", amount: 120+Math.floor(Math.random()*101), icon:"💰", rarity:"uncommon" };
-    if(roll < 0.85) return { type:"stars", amount: 2+Math.floor(Math.random()*3), icon:"⭐", rarity:"uncommon" };
-    if(roll < 0.95) return { type:"stars", amount: 6+Math.floor(Math.random()*5), icon:"🌟", rarity:"rare" };
-    const lockedSkins = SKINS.filter(s=>!profile.ownedSkins.includes(s.id));
+    if(roll < 0.40) return makeReward("crystalsS");
+    if(roll < 0.65) return makeReward("crystalsL");
+    if(roll < 0.85) return makeReward("starsS");
+    if(roll < 0.95) return makeReward("starsL");
+    const lockedSkins = SKINS.filter(sk=>!profile.ownedSkins.includes(sk.id));
     if(lockedSkins.length){
-      const skin = lockedSkins[Math.floor(Math.random()*lockedSkins.length)];
-      return { type:"skin", skinId: skin.id, icon:"🛸", rarity:"legendary" };
+      return makeReward("skin", lockedSkins[rint(lockedSkins.length)].id);
     }
-    return { type:"crystals", amount:300, icon:"💰", rarity:"rare" };
+    return { type:"crystals", kind:"crystalsL", amount:300, icon:"💰", rarity:"rare" };
   }
+  function rewardKey(r){ return r.type==="skin" ? "skin:"+r.skinId : r.type+":"+r.amount+":"+r.icon; }
+  function rewardLabel(r){ const L = REWARD_LABELS[r.kind || (r.type==="skin" ? "skin" : "crystalsS")]; return L[lang] || L.ru; }
 
-  // Пул "обманных" предметов для ленты — визуально те же категории, что и реальные награды
-  const REEL_FILLER_POOL = [
-    { type:"crystals", icon:"💎", rarity:"common" },
-    { type:"crystals", icon:"💎", rarity:"common" },
-    { type:"crystals", icon:"💰", rarity:"uncommon" },
-    { type:"stars",    icon:"⭐", rarity:"uncommon" },
-    { type:"stars",    icon:"🌟", rarity:"rare" },
-    { type:"skin",     icon:"🛸", rarity:"legendary" }
-  ];
+  // Лента барабана: ни одна награда не повторяется (разные суммы, разные корабли),
+  // и два соседних предмета никогда не бывают одной категории.
+  function buildReelItems(win, total, winIndex){
+    const used = new Set([rewardKey(win)]);
+    const items = new Array(total);
+    items[winIndex] = win;
+    const shipPool = SKINS.map(sk=>sk.id).filter(id=> !(win.type==="skin" && win.skinId===id));
+    const kindOf = (r)=> r ? (r.kind || r.type) : "";
+    function pick(prevKind, nextKind){
+      for(let tries=0; tries<80; tries++){
+        const roll = Math.random();
+        let cand;
+        if(roll < 0.42) cand = makeReward("crystalsS");
+        else if(roll < 0.68) cand = makeReward("crystalsL");
+        else if(roll < 0.82) cand = makeReward("starsS");
+        else if(roll < 0.92) cand = makeReward("starsL");
+        else cand = makeReward("skin", shipPool[rint(shipPool.length)]);
+        if(used.has(rewardKey(cand))) continue;
+        if(tries < 60 && (kindOf(cand)===prevKind || kindOf(cand)===nextKind)) continue;
+        used.add(rewardKey(cand));
+        return cand;
+      }
+      let a = 400 + rint(600);
+      while(used.has("crystals:"+a+":💰")) a++;
+      used.add("crystals:"+a+":💰");
+      return { type:"crystals", kind:"crystalsL", amount:a, icon:"💰", rarity:"uncommon" };
+    }
+    for(let i=0;i<total;i++){
+      if(i===winIndex) continue;
+      items[i] = pick(i>0 ? kindOf(items[i-1]) : "", i+1===winIndex ? kindOf(win) : "");
+    }
+    return items;
+  }
 
   function applyCaseReward(reward){
     if(reward.type==="crystals"){ profile.crystals += reward.amount; profile.stats.lifetimeCrystals += reward.amount; }
@@ -2124,9 +2197,26 @@
   // масштабируется под экран (ПК и телефон видят одинаковую картинку).
   const LW = 1000, LH = 470;
   let onlineFieldFlag = false, viewScale = 1, viewOffX = 0, viewOffY = 0;
+  // Вертикальный режим: телефон в портрете — то же логическое поле, повёрнутое на 90°
+  // (корабль внизу, препятствия летят сверху вниз), чтобы поле занимало весь экран.
+  let onlineRotFlag = false, rotCx = 0, rotCy = 0;
+  function wantRotatedField(){
+    if(!onlineFieldFlag) return false;
+    if(window.innerHeight <= window.innerWidth) return false;
+    if(detectPlatform().category !== "mobile") return false;
+    return !needLandscape();
+  }
   function applyViewport(){
     const cw = window.innerWidth, ch = window.innerHeight;
-    if(onlineFieldFlag){
+    onlineRotFlag = wantRotatedField();
+    if(onlineFieldFlag && onlineRotFlag){
+      W = LW; H = LH;
+      const topPad = Math.max(110, Math.min(160, ch*0.19));   // место под счёт сверху
+      const availH = ch - topPad;
+      viewScale = Math.min(cw/LH, availH/LW);
+      rotCx = cw/2; rotCy = topPad + availH/2;
+      viewOffX = 0; viewOffY = 0;
+    } else if(onlineFieldFlag){
       W = LW; H = LH;
       viewScale = Math.min(cw/LW, ch/LH);
       viewOffX = (cw - LW*viewScale)/2; viewOffY = (ch - LH*viewScale)/2;
@@ -2141,6 +2231,14 @@
     if(!onlineFieldFlag) return;
     ctx.fillStyle = "#04060d";
     ctx.fillRect(-5, -5, window.innerWidth + 10, window.innerHeight + 10);
+    if(onlineRotFlag){
+      ctx.translate(rotCx, rotCy);
+      ctx.rotate(-Math.PI/2);
+      ctx.scale(viewScale, viewScale);
+      ctx.translate(-LW/2, -LH/2);
+      ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+      return;
+    }
     ctx.translate(viewOffX, viewOffY);
     ctx.scale(viewScale, viewScale);
     ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
@@ -2269,6 +2367,11 @@
     const rect = container.getBoundingClientRect();
     const px = ((e.clientX - rect.left) / rect.width) * window.innerWidth;
     const py = ((e.clientY - rect.top) / rect.height) * window.innerHeight;
+    if(onlineRotFlag){
+      const lx = LW/2 - (py - rotCy) / viewScale;
+      const ly = LH/2 + (px - rotCx) / viewScale;
+      return { x: clamp(lx, xMin, xMax), y: clamp(ly, yMin, yMax) };
+    }
     const touchX = clamp((px - viewOffX) / viewScale, xMin, xMax);
     const touchY = clamp((py - viewOffY) / viewScale, yMin, yMax);
     return { x: touchX, y: touchY };
@@ -4219,6 +4322,19 @@
     openBtn.textContent = t("openCase");
     openBtn.disabled = (profile.cases.standard||0) <= 0;
 
+    const ctTitle = document.getElementById("case-contents-title");
+    if(ctTitle) ctTitle.textContent = lang==="ru" ? "Что в кейсе" : "Case contents";
+    const cc = document.getElementById("case-contents");
+    if(cc){
+      cc.innerHTML = "";
+      [["crystalsS","50–100","common"],["crystalsL","120–240","uncommon"],["starsS","2–4","uncommon"],["starsL","6–10","rare"],["skin",lang==="ru"?"Новый":"New","legendary"]].forEach(([k,v,r])=>{
+        const L = REWARD_LABELS[k];
+        const d = document.createElement("div");
+        d.className = "cc-item rarity-"+r;
+        d.innerHTML = "<div class='cc-ic'>"+L.icon+"</div><div class='cc-lb'>"+esc(L[lang]||L.ru)+"</div><div class='cc-vl'>"+esc(v)+"</div>";
+        cc.appendChild(d);
+      });
+    }
     const list = document.getElementById("case-shop-list");
     list.innerHTML = "";
     CASE_SHOP.forEach(item=>{
@@ -4246,7 +4362,7 @@
     });
   }
 
-  const REEL_ITEM_W = 78; // ширина + отступы одного элемента ленты (см. .reel-item)
+  const REEL_ITEM_W = 100; // ширина + отступы одного элемента ленты (см. .reel-item)
   let reelResolveTimer = null;
 
   function rewardValueText(reward){
@@ -4274,22 +4390,27 @@
 
     const total = 44;
     const winIndex = 34; // с запасом впереди, чтобы лента долго прокручивалась
-    const items = [];
-    for(let i=0;i<total;i++){
-      items.push(i===winIndex ? reward : REEL_FILLER_POOL[Math.floor(Math.random()*REEL_FILLER_POOL.length)]);
-    }
+    const items = buildReelItems(reward, total, winIndex);
     items.forEach((it,i)=>{
       const el = document.createElement("div");
       el.className = "reel-item rarity-"+(it.rarity||"common");
       el.dataset.index = i;
+      const ic = document.createElement("div");
+      ic.className = "reel-ic";
       if(it.type==="skin" && it.skinId){
         const c = document.createElement("canvas");
-        c.width = 56; c.height = 56;
-        el.appendChild(c);
-        drawShipAt(c.getContext("2d"), 28, 30, 12, -0.1, it.skinId, 0.7, 0.6);
+        c.width = 52; c.height = 40;
+        ic.appendChild(c);
+        drawShipAt(c.getContext("2d"), 26, 21, 11, -0.1, it.skinId, 0.8, 0.6);
       } else {
-        el.textContent = it.icon || "🎁";
+        ic.textContent = it.icon || "🎁";
       }
+      const lb = document.createElement("div");
+      lb.className = "reel-lb"; lb.textContent = rewardLabel(it);
+      const vl = document.createElement("div");
+      vl.className = "reel-vl";
+      vl.textContent = it.type==="skin" ? getSkin(it.skinId).name[lang] : "+"+it.amount;
+      el.appendChild(ic); el.appendChild(lb); el.appendChild(vl);
       track.appendChild(el);
     });
 
@@ -4323,7 +4444,7 @@
       } else {
         shipCanvas.classList.add("hidden");
       }
-      valEl.textContent = rewardValueText(reward);
+      valEl.innerHTML = "<small>"+esc(rewardLabel(reward))+"</small>"+esc(rewardValueText(reward));
       valEl.classList.remove("hidden");
       claimBtn.textContent = t("claim");
       claimBtn.classList.remove("hidden");
@@ -4341,8 +4462,8 @@
     document.getElementById("levels-back-text").textContent = t("back");
     const list = document.getElementById("levels-list");
     list.innerHTML = "";
-    const maxLevel = Math.max(30, profile.level + 8);
-    for(let lvl=1; lvl<=maxLevel; lvl++){
+    clampLevel();
+    for(let lvl=1; lvl<=MAX_LEVEL; lvl++){
       const reward = levelRewardFor(lvl);
       const row = document.createElement("div");
       let cls = "level-row";
@@ -4355,13 +4476,16 @@
 
       const badge = document.createElement("div");
       badge.className = "lv-badge";
-      badge.textContent = t("level")+" "+lvl;
+      const rk = getRank(lvl);
+      badge.innerHTML = esc(t("level")+" "+lvl)+"<small>"+esc(rk.name[lang]+" "+rk.roman)+"</small>";
       row.appendChild(badge);
 
       const rewardEl = document.createElement("div");
       rewardEl.className = "lv-reward";
       let html = "<span><b>+"+reward.crystals+"</b> 💎</span>";
-      if(reward.isCaseLevel){ html += "<span>🎁 <b>+"+reward.caseBonus+"</b> 💎</span>"; }
+      if(reward.isCaseLevel){ html += "<span>🎁 "+esc(t("caseLabel"))+" + <b>"+reward.caseBonus+"</b> 💎</span>"; }
+      SKINS.filter(sk=>sk.reqLevel===lvl && lvl>1).forEach(sk=>{ html += "<span class='lv-skin'>🛸 "+esc(sk.name[lang])+"</span>"; });
+      if(rk.numeral===1 && lvl>1) row.classList.add("rank-up");
       rewardEl.innerHTML = html;
       row.appendChild(rewardEl);
 
@@ -4507,13 +4631,13 @@
     document.getElementById("menu-crystals").textContent = profile.crystals;
     document.getElementById("menu-stars").textContent = profile.stars;
     document.getElementById("menu-profile-avatar").textContent = profile.avatar || AVATARS[0];
-    const need = xpToNext(profile.level);
-    const pct = Math.min(100, Math.round((profile.xp/need)*100));
+    clampLevel();
+    const pct = xpPct(profile.level, profile.xp);
     const fillEl = document.getElementById("menu-xp-fill");
     if(!animate) fillEl.style.transition = "none";
     fillEl.style.width = pct+"%";
     if(!animate) requestAnimationFrame(()=>{ fillEl.style.transition = ""; });
-    document.getElementById("menu-xp-amount").textContent = profile.xp+"/"+need;
+    document.getElementById("menu-xp-amount").textContent = xpText(profile.level, profile.xp);
 
     refreshUserCard();
     try{
@@ -4544,10 +4668,9 @@
     const prevRank = getRank(prevLevel);
     rankEl.textContent = prevRank.name[lang]+" "+prevRank.roman;
     medalEl.innerHTML = rankMedalHTML(prevRank, 34);
-    const prevNeed = xpToNext(prevLevel);
     fillEl.style.transition = "none";
-    fillEl.style.width = Math.min(100, Math.round(prevXp/prevNeed*100))+"%";
-    amountEl.textContent = prevXp+"/"+prevNeed;
+    fillEl.style.width = xpPct(prevLevel, prevXp)+"%";
+    amountEl.textContent = xpText(prevLevel, prevXp);
 
     requestAnimationFrame(()=>{
       fillEl.style.transition = "width 1.1s cubic-bezier(.2,.8,.3,1)";
@@ -4562,17 +4685,15 @@
           setTimeout(()=>medalEl.classList.remove("medal-pop"), 500);
           fillEl.style.transition = "none";
           fillEl.style.width = "0%";
-          const newNeed = xpToNext(newLevel);
           requestAnimationFrame(()=>{
             fillEl.style.transition = "width 1.1s cubic-bezier(.2,.8,.3,1)";
-            fillEl.style.width = Math.min(100, Math.round(newXp/newNeed*100))+"%";
-            amountEl.textContent = newXp+"/"+newNeed;
+            fillEl.style.width = xpPct(newLevel, newXp)+"%";
+            amountEl.textContent = xpText(newLevel, newXp);
           });
         }, 1150);
       } else {
-        const need = xpToNext(newLevel);
-        fillEl.style.width = Math.min(100, Math.round(newXp/need*100))+"%";
-        amountEl.textContent = newXp+"/"+need;
+        fillEl.style.width = xpPct(newLevel, newXp)+"%";
+        amountEl.textContent = xpText(newLevel, newXp);
       }
     });
   }
@@ -5188,8 +5309,15 @@
         const tagText = (onlineOpponent.avatar || "🧑‍🚀") + " " + (safeName(onlineOpponent.name) || "Opponent");
         const bw = Math.max(56, Math.ceil(ctx.measureText(tagText).width) + 20);
         const bh = 22;
-        const bx = clamp(onlineOpponent.x - bw/2, 4, W - bw - 4);
-        const by = Math.max(4, onlineOpponent.y - 40);
+        let bx = clamp(onlineOpponent.x - bw/2, 4, W - bw - 4);
+        let by = Math.max(4, onlineOpponent.y - 40);
+        if(onlineRotFlag){
+          const tcx = clamp(onlineOpponent.x + 44, bh/2 + 4, W - bh/2 - 4);
+          const tcy = clamp(onlineOpponent.y, bw/2 + 4, H - bw/2 - 4);
+          ctx.translate(tcx, tcy);
+          ctx.rotate(Math.PI/2);
+          bx = -bw/2; by = -bh/2;
+        }
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fillRect(bx, by, bw, bh);
         ctx.strokeStyle = "rgba(94,235,255,0.85)";
@@ -5207,8 +5335,18 @@
      ГЛАВНЫЙ ЦИКЛ
   =========================================================== */
   let lastTime = 0;
+  let menuChromeOn = null;
+  function syncMenuChrome(){
+    const inMenu = state === "menu" && screens.menu && !screens.menu.classList.contains("hidden");
+    if(inMenu !== menuChromeOn){
+      menuChromeOn = inMenu;
+      document.body.classList.toggle("in-menu", inMenu);
+      if(!inMenu){ const m = document.getElementById("audio-modal"); if(m) m.classList.add("hidden"); }
+    }
+  }
   function loop(ts){
     syncFieldMode();
+    syncMenuChrome();
     if(!lastTime) lastTime = ts;
     let dt = (ts-lastTime)/1000;
     dt = Math.min(dt, 0.033);
